@@ -39,7 +39,7 @@ class TestPrintMenu(unittest.TestCase):
             "(8) Load routes and shapes from a pickle",
             "",
             "(9) Reserved for future use",
-            "(0) Quitd",
+            "(0) Quit",
             "",
         ]
         with Capturing() as output:
