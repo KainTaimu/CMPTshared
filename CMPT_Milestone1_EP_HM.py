@@ -4,13 +4,36 @@
 # -------------------------------
 
 
+class RouteData:
+    """
+    purpose:
+    parameter:
+    return:
+    """
+
+    def __init__(self, route_id: str, route_name: str, shape_id: list[str]):
+        self.__route_id = route_id
+        self.__route_name = route_name
+        self.__shape_id = shape_id
+
+    def get_route_id(self) -> str:
+        return self.__route_id
+
+    def get_route_name(self) -> str:
+        return self.__route_name
+
+    def get_shape_id(self) -> list[str]:
+        return self.__shape_id
+
+
 def print_menu() -> None:
     """
     purpose:
     parameter:
     return:
     """
-    print("""
+    print(
+        """
 Edmonton Transit System
 ---------------------------------
 (1) Load route data
@@ -26,8 +49,9 @@ Edmonton Transit System
 
 (9) Reserved for future use
 (0) Quit
-""")
-    
+"""
+    )
+
 
 def main() -> None:
     """
@@ -35,7 +59,7 @@ def main() -> None:
     parameter:
     return:
     """
-    
+
     running = True
     while running:
         print_menu()
@@ -63,6 +87,6 @@ def main() -> None:
         else:
             print("Invalid Option")
 
-    
+
 if __name__ == "__main__":
     main()
