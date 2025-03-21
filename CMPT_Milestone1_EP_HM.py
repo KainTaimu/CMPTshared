@@ -3,6 +3,19 @@
 # Programming Project - Milestone#1
 # -------------------------------
 
+{
+    "008": [
+            "117-34-East",
+            "117-35-West"
+            ]
+}
+
+{
+    "117-35-West": [
+        (53.602366,-113.412183),
+        (53.602160,-113.412500)
+    ]
+}
 
 class RouteData:
     """
@@ -11,21 +24,10 @@ class RouteData:
     return:
     """
 
-    def __init__(self, route_id: str, route_name: str, shape_id: list[str]):
-        self.__route_id = route_id
-        self.__route_name = route_name
-        self.__shape_id = shape_id
+    def __init__(self):
+        pass
+        
 
-    def get_route_id(self) -> str:
-        return self.__route_id
-
-    def get_route_name(self) -> str:
-        return self.__route_name
-
-    def get_shape_id(self) -> list[str]:
-        return self.__shape_id
-
-msmds
 def print_menu() -> None:
     """
     purpose:
