@@ -16,12 +16,18 @@
 
 
 class Shape:
+    """
+    Holds the shape ID and coordinates of a Shape
+    """
     def __init__(self, shape_id: str):
         self.__shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
 
 
 class Route:
+    """
+    Holds the route ID, full route name, and shape IDs specified in trips.txt
+    """
     def __init__(self, route_id: str) -> None:
         self.route_id: str = route_id
         self.route_name: str
@@ -36,57 +42,91 @@ class Route:
 
 class RouteData:
     """
-    purpose:
-    parameter:
-    return:
+    Provides an interface to load and access routes and shape IDs
     """
 
     def __init__(self):
+        """
+        __routes:
+            A dictionary with a route ID as key and a Route object as a value
+        __shape_ids:
+            A dictionary with a shape ID as key and a Route object as a value
+        """
         self.__routes: dict[str, Route] = {}
         self.__shape_ids: dict[str, Shape] = {}
 
     def load_trips_data(self, trips_path: str):
+        """
+        Attempts to load the trips data file. Raises an IOError exception if file path is invalid. 
+        Defaults trip_paths to "data/trips.txt" 
+        """
         if not trips_path:
             trips_path = "data/trips.txt"
         self.__routes = self.__load_trips_data(trips_path)
         print(f"Data from {trips_path} loaded")
 
     def load_shapes_data(self, shapes_path: str):
+        """
+        Attempts to load the shapes data file. Raises an IOError exception if file path is invalid. 
+        Defaults trip_paths to "data/shapes.txt" 
+        """
         if not shapes_path:
             shapes_path = "data/shapes.txt"
         self.__shape_ids = self.__load_shapes_data(shapes_path)
         print(f"Data from {shapes_path} loaded")
 
     def get_route_long_name(self, route_id: str):
+        """
+        Returns the route long name of a route ID. Returns None if route_id does not exist.
+        """
         if route_id in self.__routes:
             return self.__routes[route_id].route_name
         return None
 
     def get_coords_from_shape_id(self, shape_id: str):
+        """
+        Returns the coordinates points associated with the shape ID.
+        """
         if shape_id in self.__shape_ids:
             return self.__shape_ids[shape_id].coordinates
         return None
 
     def get_shape_id_from_route_id(self, route_id: str):
+        """
+        Returns the shape ID for a route ID
+        """
         if route_id in self.__routes:
             return self.__routes[route_id].shape_id
         return None
 
     def routes_loaded(self):
+        """
+        Returns True if the routes file has been loaded. Otherwise, returns False.
+        """
         if self.__routes:
             return True
         return False
 
     def shapes_loaded(self):
+        """
+        Returns True if the shapes file has been loaded. Otherwise, returns False.
+        """
         if self.__shape_ids:
             return True
         return False
 
     def __load_trips_data(self, trips_path: str):
+        """
+        Find and save all the route IDs from trips.txt and routes.txt.
+        trips.txt contains the route IDs and its corresponding shape IDs
+        routes.txt contains the route long names for each route ID
+        """
         ROUTES_PATH = "data/routes.txt"
         routes: dict[str, Route] = {}
+        
+        # First, find the shape IDs
         with open(trips_path) as f:
-            f.readline()
+            f.readline() # We skip the CSV header line
             for line in f:
                 spl = line.strip().split(",")
                 route_id = spl[0]
@@ -111,6 +151,9 @@ class RouteData:
         return routes
 
     def __load_shapes_data(self, shapes_path: str):
+        """
+        Find and save the shape IDs and its coordinate points
+        """
         shapes: dict[str, Shape] = {}
         with open(shapes_path) as f:
             f.readline()  # Skip header line
@@ -155,6 +198,9 @@ Edmonton Transit System
 
 
 def load_route_data(data: RouteData):
+    """
+    Ask for a file path to the routes data file and load it
+    """
     path = input("Enter a filename: ")
     try:
         data.load_trips_data(path)
