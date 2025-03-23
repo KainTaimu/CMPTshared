@@ -46,11 +46,44 @@ class RouteData:
         self.__shape_ids: dict[str, Shape] = {}
 
     def load_trips_data(self, trips_path: str):
-        ROUTES_PATH = "data/routes.txt"
-
         if not trips_path:
             trips_path = "data/trips.txt"
+        self.__routes = self.__load_trips_data(trips_path)
+        print(f"Data from {trips_path} loaded")
 
+    def load_shapes_data(self, shapes_path: str):
+        if not shapes_path:
+            shapes_path = "data/shapes.txt"
+        self.__shape_ids = self.__load_shapes_data(shapes_path)
+        print(f"Data from {shapes_path} loaded")
+
+    def get_route_long_name(self, route_id: str):
+        if route_id in self.__routes:
+            return self.__routes[route_id].route_name
+        return None
+
+    def get_coords_from_shape_id(self, shape_id: str):
+        if shape_id in self.__shape_ids:
+            return self.__shape_ids[shape_id].coordinates
+        return None
+
+    def get_shape_id_from_route_id(self, route_id: str):
+        if route_id in self.__routes:
+            return self.__routes[route_id].shape_id
+        return None
+
+    def routes_loaded(self):
+        if self.__routes:
+            return True
+        return False
+
+    def shapes_loaded(self):
+        if self.__shape_ids:
+            return True
+        return False
+
+    def __load_trips_data(self, trips_path: str):
+        ROUTES_PATH = "data/routes.txt"
         routes: dict[str, Route] = {}
         with open(trips_path) as f:
             f.readline()
@@ -71,16 +104,13 @@ class RouteData:
                 spl = line.strip().split(",")
                 route_id = spl[0]
 
-                # We remove the quotation marks surroundin the name
+                # We remove the quotation marks surrounding the name
                 route_name = spl[3].replace('"', "")
                 routes[route_id].set_route_name(route_name)
 
-        self.__routes = routes
-        print(f"Data from {trips_path} loaded")
+        return routes
 
-    def load_shapes_data(self, shapes_path: str):
-        if not shapes_path:
-            shapes_path = "data/shapes.txt"
+    def __load_shapes_data(self, shapes_path: str):
         shapes: dict[str, Shape] = {}
         with open(shapes_path) as f:
             f.readline()  # Skip header line
@@ -94,35 +124,7 @@ class RouteData:
                 else:
                     shapes[shape_id] = Shape(shape_id)
                     shapes[shape_id].coordinates.append(coord)
-                    
-
-        self.__shape_ids = shapes
-        print(f"Data from {shapes_path} loaded")
-
-    def get_route_long_name(self, route_id: str):
-        if route_id in self.__routes:
-            return self.__routes[route_id].route_name
-        return None
-
-    def get_coords_from_shape_id(self, shape_id: str):
-        if shape_id in self.__shape_ids:
-            return self.__shape_ids[shape_id].coordinates
-        return None            
-
-    def get_shape_id_from_route_id(self, route_id: str):
-        if route_id in self.__routes:
-            return self.__routes[route_id].shape_id
-        return None
-
-    def routes_loaded(self):
-        if self.__routes:
-            return True
-        return False
-
-    def shapes_loaded(self):
-        if self.__shape_ids:
-            return True
-        return False
+        return shapes
 
 
 def print_menu() -> None:
