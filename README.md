@@ -1,3 +1,17 @@
+### Milestone 1
+- [X] Load route data
+- [X] Load shapes data
+- [ ] Reserved for future use
+- [X] Print shape IDs for a route
+- [X] Print coordinates for a shape ID
+- [ ] Reserved for future use
+- [ ] Save routes and shapes in a pickle
+- [ ] Load routes and shapes from a pickle
+- [ ] Reserved for future use
+- [X] Quit
+
+## Documentation
+
 ### The shit we need to keep track of
 We need to keep 4 things:
 - route_long_name: The full route name 
@@ -45,7 +59,7 @@ This data structure keeps the shape_id and coordinates from **shapes.txt**.
 ```
 
 ### RouteData:
-This data structure holds and connects everything and serves as a place to get data (route ids, etc.) from.
+This data structure holds and connects everything and serves as an interface to load and get data from.
 #### JSON-like Layout:
 ```yaml
 {
@@ -77,6 +91,17 @@ This data structure holds and connects everything and serves as a place to get d
     }
 }
 ```
+
+#### Attributes
+__route_names:  
+A dictionary with a route long name as key and a Route object as a value  
+
+__routes:  
+A dictionary with a route ID as key and a Route object as a value  
+
+__shape_ids:  
+A dictionary with a shape ID as key and a Shape object as a value  
+
 
 #### Methods
 load_trips_data(self, trips_path: str):  
