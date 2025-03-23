@@ -20,10 +20,10 @@ class Route:
     def __init__(self, route_id: str) -> None:
         self.route_id: str = route_id
         self.route_name: str
-        self.shape_id: set[str] = set()
+        self.shape_ids: set[str] = set()
 
     def set_shape_id(self, shape_id: str):
-        self.shape_id.add(shape_id)
+        self.shape_ids.add(shape_id)
 
     def set_route_name(self, route_name: str):
         self.route_name = route_name
@@ -97,7 +97,7 @@ class RouteData:
         Returns the shape ID for a route ID
         """
         if route_id in self.__routes:
-            return self.__routes[route_id].shape_id
+            return self.__routes[route_id].shape_ids
         return None
 
     def routes_loaded(self):

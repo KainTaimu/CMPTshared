@@ -18,11 +18,36 @@ We need to keep 4 things:
 
 ### Route:
 This data structure keeps the three things we load in **trips.txt** and **routes.txt**.  
+#### Layout:
+```json
+{
+    "route_id": "117",
+    "route_name": "Eaux Claires - West Clareview",
+    "shape_ids": [
+        "117-34-East",
+        "117-35-West"
+    ]
+}
+```
+
+### Shape
+This data structure keeps the shape_id and coordinates from **shapes.txt**.  
+#### Layout:
+```json
+{
+    "shape_id": "112-3-East",
+    "coordinates": [
+        (53.616871, -113.516426),
+        (53.616892, -113.516468),
+            ...         ...
+    ]
+}
+```
 
 ### RouteData:
 This data structure holds and connects everything and serves as a place to get data (route ids, etc.) from.
 #### JSON-like Layout:
-```json
+```jsonc
 {
     // If we don't have the route ID, we can get it from the long name instead.
     "__route_names": {
@@ -33,10 +58,10 @@ This data structure holds and connects everything and serves as a place to get d
         "117": {
             "route_id": "117",
             "route_name": "Eaux Claires - West Clareview",
-            "shape_id": {
+            "shape_ids": [
                 "117-34-East",
                 "117-35-West"
-            }
+            ]
         },
         ...
     },
@@ -53,3 +78,34 @@ This data structure holds and connects everything and serves as a place to get d
     }
 }
 ```
+
+#### Methods
+load_trips_data(self, trips_path: str):  
+N/A
+
+load_shapes_data(self, shapes_path: str):  
+N/A
+
+get_route_long_name(self, route_id: str):  
+N/A
+
+get_route_id(self, route_long_name: str):  
+N/A
+
+get_coords_from_shape_id(self, shape_id: str):  
+N/A
+
+get_shape_id_from_route_id(self, route_id: str):  
+N/A
+
+routes_loaded(self):  
+N/A
+
+shapes_loaded(self):  
+N/A
+
+__load_trips_data(self, trips_path: str):  
+N/A
+
+__load_shapes_data(self, shapes_path: str):  
+N/A
