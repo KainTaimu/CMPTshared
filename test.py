@@ -159,7 +159,7 @@ class TestPrintMenu(unittest.TestCase):
         "",
     ]
 
-    def test_stdout(self):
+    def test_print_menu(self):
         with Capturing() as output:
             print_menu()
         self.assertEqual(
@@ -216,59 +216,65 @@ class TestPrintMenu(unittest.TestCase):
 
 class TestLoadRouteData(unittest.TestCase):
     @unittest.mock.patch("builtins.input")
-    def test_load_route_data(self, mocked_input: unittest.mock.Mock):
-        EXPECTED_INPUT = [
-            ["non_existent_file"],
-            ["data/trips.txt"],
-            [""],
-        ]
-        EXPECTED_OUTPUT = [
-            ["Enter a filename: IOError: Couldn't open non_existent_file"],
-            ["Enter a filename: Data from data/trips.txt loaded"],
-            ["Enter a filename: Data from data/trips.txt loaded"],
-        ]
+    def test_load_route_data_valid_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: Data from data/trips.txt loaded"]
+        mocked_input.side_effect = ["data/trips.txt"]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_route_data(data)
 
-        for exp_input, exp_output in TestIO(EXPECTED_INPUT, EXPECTED_OUTPUT):
-            mocked_input.side_effect = exp_input
-            data = RouteData()
+        self.assertEqual(output, EXPECTED)
 
-            with CapturingInputOutput() as output:
-                load_route_data(data)
+    @unittest.mock.patch("builtins.input")
+    def test_load_route_data_invalid_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: IOError: Couldn't open non_existent_file"]
+        mocked_input.side_effect = ["non_existent_file"]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_route_data(data)
 
-            self.assertEqual(
-                output,
-                exp_output,
-                f"\nFunction {Colors.UNDERLINE}load_route_data{Colors.END}:\nwith inputs:\n{exp_input}\ngot:\n{Colors.RED}{output}{Colors.END}\nexpected:\n{Colors.GREEN}{exp_output}{Colors.END}",
-            )
+        self.assertEqual(output, EXPECTED)
+        
+    @unittest.mock.patch("builtins.input")
+    def test_load_route_data_default_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: Data from data/trips.txt loaded"]
+        mocked_input.side_effect = [""]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_route_data(data)
 
+        self.assertEqual(output, EXPECTED)
 
 class TestLoadShapeData(unittest.TestCase):
     @unittest.mock.patch("builtins.input")
-    def test_load_shape_data(self, mocked_input: unittest.mock.Mock):
-        EXPECTED_INPUT = [
-            ["non_existent_file"],
-            ["data/shapes.txt"],
-            [""],
-        ]
-        EXPECTED_OUTPUT = [
-            ["Enter a filename: IOError: Couldn't open non_existent_file"],
-            ["Enter a filename: Data from data/shapes.txt loaded"],
-            ["Enter a filename: Data from data/shapes.txt loaded"],
-        ]
+    def test_load_shape_data_valid_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: Data from data/shapes.txt loaded"]
+        mocked_input.side_effect = ["data/shapes.txt"]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_shape_data(data)
 
-        for exp_input, exp_output in TestIO(EXPECTED_INPUT, EXPECTED_OUTPUT):
-            mocked_input.side_effect = exp_input
-            data = RouteData()
+        self.assertEqual(output, EXPECTED)
+            
+    @unittest.mock.patch("builtins.input")
+    def test_load_shape_data_invalid_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: IOError: Couldn't open non_existent_file"]
+        mocked_input.side_effect = ["non_existent_file"]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_shape_data(data)
 
-            with CapturingInputOutput() as output:
-                load_shape_data(data)
+        self.assertEqual(output, EXPECTED)
+        
+    @unittest.mock.patch("builtins.input")
+    def test_load_shape_data_default_path(self, mocked_input: unittest.mock.Mock):
+        EXPECTED = ["Enter a filename: Data from data/shapes.txt loaded"]
+        mocked_input.side_effect = [""]
+        data = RouteData()
+        with CapturingInputOutput() as output:
+            load_shape_data(data)
 
-            self.assertEqual(
-                output,
-                exp_output,
-                f"\nFunction {Colors.UNDERLINE}load_shape_data{Colors.END}:\nwith inputs:\n{exp_input}\ngot:\n{Colors.RED}{output}{Colors.END}\nexpected:\n{Colors.GREEN}{exp_output}{Colors.END}",
-            )
-
+        self.assertEqual(output, EXPECTED)
 
 class TestLoadPrintShapeIds(unittest.TestCase):
     TRIPS_PATH = "data/trips.txt"
@@ -284,7 +290,7 @@ class TestLoadPrintShapeIds(unittest.TestCase):
         self.assertEqual(output, EXPECTED)
         
     @unittest.mock.patch("builtins.input")
-    def test_print_shape_ids(self, mocked_input: unittest.mock.Mock):
+    def test_print_shape_ids_found(self, mocked_input: unittest.mock.Mock):
         EXPECTED = [
             "Enter route: Shape ids for route [Eaux Claires - West Clareview]",
             "\t117-34-East",
@@ -328,7 +334,7 @@ class TestLoadPrintCoordinates(unittest.TestCase):
         self.assertEqual(output, EXPECTED)
 
     @unittest.mock.patch("builtins.input")
-    def test_print_shape_ids(self, mocked_input: unittest.mock.Mock):
+    def test_print_shape_ids_found(self, mocked_input: unittest.mock.Mock):
         # As shown in page 15 of project specs
         EXPECTED = [
             "Enter shape ID: Shape ID coordinates for 112-3-East are:",
