@@ -19,7 +19,7 @@ We need to keep 4 things:
 ### Route:
 This data structure keeps the three things we load in **trips.txt** and **routes.txt**.  
 #### Layout:
-```json
+```yaml
 {
     "route_id": "117",
     "route_name": "Eaux Claires - West Clareview",
@@ -33,7 +33,7 @@ This data structure keeps the three things we load in **trips.txt** and **routes
 ### Shape
 This data structure keeps the shape_id and coordinates from **shapes.txt**.  
 #### Layout:
-```json
+```yaml
 {
     "shape_id": "112-3-East",
     "coordinates": [
