@@ -47,9 +47,8 @@ This data structure keeps the shape_id and coordinates from **shapes.txt**.
 ### RouteData:
 This data structure holds and connects everything and serves as a place to get data (route ids, etc.) from.
 #### JSON-like Layout:
-```jsonc
+```python
 {
-    // If we don't have the route ID, we can get it from the long name instead.
     "__route_names": {
         "Eaux Claires - West Clareview": "117",
         ...
