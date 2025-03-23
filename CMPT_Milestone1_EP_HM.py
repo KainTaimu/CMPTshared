@@ -22,7 +22,7 @@ class Shape:
     def __init__(self, shape_id: str):
         self.__shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
-
+        
 
 class Route:
     """
@@ -50,7 +50,7 @@ class RouteData:
         __routes:
             A dictionary with a route ID as key and a Route object as a value
         __shape_ids:
-            A dictionary with a shape ID as key and a Route object as a value
+            A dictionary with a shape ID as key and a Shape object as a value
         """
         self.__routes: dict[str, Route] = {}
         self.__shape_ids: dict[str, Shape] = {}
