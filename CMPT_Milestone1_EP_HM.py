@@ -3,24 +3,13 @@
 # Programming Project - Milestone#1
 # -------------------------------
 
-{"008": ["Shape('117-34-East')", "Shape('117-35-West')"]}  # type: ignore
-
-{"117-35-West": [(53.602366, -113.412183), (53.602160, -113.412500)]}  # type: ignore
-
-# self.__shape_id = {
-# "008": [
-# Shape("117-34-East", [1, -1]),
-# Shape("117-35-West", [-1, 1]),
-# ]
-# }
-
 
 class Shape:
     """
     Holds the shape ID and coordinates of a Shape
     """
     def __init__(self, shape_id: str):
-        self.__shape_id = shape_id
+        self.shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
         
 
@@ -47,11 +36,14 @@ class RouteData:
 
     def __init__(self):
         """
+        __route_names:
+            A dictionary with a route long name as key and a Route object as a value
         __routes:
             A dictionary with a route ID as key and a Route object as a value
         __shape_ids:
             A dictionary with a shape ID as key and a Shape object as a value
         """
+        self.__route_names: dict[str, str] = {}
         self.__routes: dict[str, Route] = {}
         self.__shape_ids: dict[str, Shape] = {}
 
@@ -81,6 +73,15 @@ class RouteData:
         """
         if route_id in self.__routes:
             return self.__routes[route_id].route_name
+        return None
+
+    # UNUSED
+    def get_route_id(self, route_long_name: str):
+        """
+        Returns the route ID of a route long name. Returns None if route_long_name does not exist.
+        """
+        if route_long_name in self.__route_names:
+            return self.__route_names[route_long_name]
         return None
 
     def get_coords_from_shape_id(self, shape_id: str):
@@ -147,6 +148,7 @@ class RouteData:
                 # We remove the quotation marks surrounding the name
                 route_name = spl[3].replace('"', "")
                 routes[route_id].set_route_name(route_name)
+                self.__route_names[route_name] = route_id
 
         return routes
 
