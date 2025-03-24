@@ -8,15 +8,17 @@ class Shape:
     """
     Holds the shape ID and coordinates of a Shape
     """
+
     def __init__(self, shape_id: str):
         self.shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
-        
+
 
 class Route:
     """
     Holds the route ID, full route name, and shape IDs specified in trips.txt
     """
+
     def __init__(self, route_id: str) -> None:
         self.route_id: str = route_id
         self.route_name: str
@@ -49,8 +51,8 @@ class RouteData:
 
     def load_trips_data(self, trips_path: str):
         """
-        Attempts to load the trips data file. Raises an IOError exception if file path is invalid. 
-        Defaults trip_paths to "data/trips.txt" 
+        Attempts to load the trips data file. Raises an IOError exception if file path is invalid.
+        Defaults trip_paths to "data/trips.txt"
         """
         if not trips_path:
             trips_path = "data/trips.txt"
@@ -59,8 +61,8 @@ class RouteData:
 
     def load_shapes_data(self, shapes_path: str):
         """
-        Attempts to load the shapes data file. Raises an IOError exception if file path is invalid. 
-        Defaults trip_paths to "data/shapes.txt" 
+        Attempts to load the shapes data file. Raises an IOError exception if file path is invalid.
+        Defaults trip_paths to "data/shapes.txt"
         """
         if not shapes_path:
             shapes_path = "data/shapes.txt"
@@ -124,10 +126,10 @@ class RouteData:
         """
         ROUTES_PATH = "data/routes.txt"
         routes: dict[str, Route] = {}
-        
+
         # First, find the shape IDs
         with open(trips_path) as f:
-            f.readline() # We skip the CSV header line
+            f.readline()  # We skip the CSV header line
             for line in f:
                 spl = line.strip().split(",")
                 route_id = spl[0]
