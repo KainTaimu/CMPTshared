@@ -84,20 +84,20 @@ class RouteData:
             return self.__route_names[route_long_name]
         return None
 
-    def get_coords_from_shape_id(self, shape_id: str):
-        """
-        Returns the coordinates points associated with the shape ID.
-        """
-        if shape_id in self.__shape_ids:
-            return self.__shape_ids[shape_id].coordinates
-        return None
-
     def get_shape_id_from_route_id(self, route_id: str):
         """
         Returns the shape ID for a route ID
         """
         if route_id in self.__routes:
             return self.__routes[route_id].shape_ids
+        return None
+
+    def get_coords_from_shape_id(self, shape_id: str):
+        """
+        Returns the coordinates points associated with the shape ID.
+        """
+        if shape_id in self.__shape_ids:
+            return self.__shape_ids[shape_id].coordinates
         return None
 
     def routes_loaded(self):

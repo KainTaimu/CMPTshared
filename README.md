@@ -63,10 +63,6 @@ This data structure holds and connects everything and serves as an interface to 
 #### JSON-like Layout:
 ```yaml
 {
-    "__route_names": {
-        "Eaux Claires - West Clareview": "117",
-        ...
-    },
     "__routes": {
         "117": {
             "route_id": "117",
@@ -78,12 +74,16 @@ This data structure holds and connects everything and serves as an interface to 
         },
         ...
     },
+    "__route_names": {
+        "Eaux Claires - West Clareview": "117",
+        ...
+    },
     "__shapes_ids": {
-        "112-3-East": {
-            "shape_id": "112-3-East",
+        "117-34-East": {
+            "shape_id": "117-34-East",
             "coordinates": [
-                (53.616871, -113.516426),
-                (53.616892, -113.516468),
+                (53.618224, -113.490551),
+                (53.61823, -113.489231),
                     ...         ...
             ]
         },
@@ -116,10 +116,10 @@ N/A
 get_route_id(self, route_long_name: str):  
 N/A
 
-get_coords_from_shape_id(self, shape_id: str):  
+get_shape_id_from_route_id(self, route_id: str):  
 N/A
 
-get_shape_id_from_route_id(self, route_id: str):  
+get_coords_from_shape_id(self, shape_id: str):  
 N/A
 
 routes_loaded(self):  
