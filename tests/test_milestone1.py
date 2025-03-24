@@ -304,7 +304,7 @@ def test_save_routes_valid_path(monkeypatch, complete_route_data, no_data_path):
     assert output == expected
     
 
-def test_save_routes_default_path(monkeypatch, complete_route_data):
+def test_save_routes_default_path(monkeypatch, complete_route_data, no_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
     
