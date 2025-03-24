@@ -3,6 +3,8 @@
 # Programming Project - Milestone#1
 # -------------------------------
 
+import pickle
+
 
 class Shape:
     """
@@ -249,6 +251,36 @@ def print_coordinates(data: RouteData):
         print("\t" + repr(shape))
 
 
+def save_routes(data: RouteData):
+    if not data.routes_loaded():
+        print("Route data hasn't been loaded yet")
+        return
+    if not data.shapes_loaded():
+        print("Shape ID data hasn't been loaded yet")
+        return
+    data_path = input("Enter a filename: ")
+    if not data_path:
+        data_path = "data/etsdata.p"
+
+    with open(data_path, "wb") as f:
+        pickle.dump(data, f)
+        print(f"Data structures successfully written to {data_path}")
+
+
+def load_routes() -> RouteData | None:
+    data_path = input("Enter a filename: ")
+    if not data_path:
+        data_path = "data/etsdata.p"
+
+    try:
+        with open(data_path, "rb") as f:
+            data = pickle.load(f)
+        print(f"Routes and shapes Data structures successfully loaded from {data_path}")
+        return data
+    except FileNotFoundError:
+        print(f"IOError: Couldn't open {data_path}")
+        return None
+
 def main() -> None:
     """
     purpose:
@@ -275,9 +307,11 @@ def main() -> None:
         elif user_input == "6":
             print("Option 6 reserved for Milestone#2")
         elif user_input == "7":
-            pass
+            save_routes(data)
         elif user_input == "8":
-            pass
+            out = load_routes()
+            if out:
+                data = out
         elif user_input == "9":
             print("Option 9 reserved for Milestone#2")
         else:

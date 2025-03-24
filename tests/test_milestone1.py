@@ -1,8 +1,14 @@
 from io import StringIO
+from pathlib import Path
 from CMPT_Milestone1_EP_HM import *
 import builtins
 import pytest
 import sys
+import logging
+import shutil
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Mute:
@@ -62,7 +68,7 @@ def route_data():
 
 
 @pytest.fixture
-def trips_data(route_data):
+def trips_data(route_data: RouteData):
     """Return a RouteData instance with trips data loaded"""
     with Mute():
         route_data.load_trips_data("data/trips.txt")
@@ -70,11 +76,39 @@ def trips_data(route_data):
 
 
 @pytest.fixture
-def shapes_data(route_data):
+def shapes_data(route_data: RouteData):
     """Return a RouteData instance with shapes data loaded"""
     with Mute():
         route_data.load_shapes_data("data/shapes.txt")
     return route_data
+
+
+@pytest.fixture
+def complete_route_data(route_data: RouteData):
+    """Return a RouteData instance with both shape and trips data loaded"""
+    with Mute():
+        route_data.load_trips_data("data/trips.txt")
+        route_data.load_shapes_data("data/shapes.txt")
+        
+    return route_data
+
+
+@pytest.fixture
+def no_data_path(monkeypatch):
+    """Creates a temporary directory with nothing in it to test when etsdata.p doesn't exist"""
+    path = Path(__file__).parent
+    monkeypatch.chdir(path)    
+    (path / "data").mkdir()
+    yield path
+    shutil.rmtree(path / "data")
+
+
+@pytest.fixture
+def data_path(monkeypatch):
+    """Changes the current directory to a directory with a valid etsdata.p file"""
+    path = Path(__file__).parent / "test_files"
+    monkeypatch.chdir(path)    
+    return path
 
 
 TEST_MENU_OUTPUT = [
@@ -258,3 +292,55 @@ def test_print_coordinates_not_found(monkeypatch, shapes_data):
         print_coordinates(shapes_data)
 
     assert output == expected
+
+
+def test_save_routes_valid_path(monkeypatch, complete_route_data, no_data_path):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
+    expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
+    
+    with CapturingInputOutput() as output:
+        save_routes(complete_route_data)
+    
+    assert output == expected
+    
+
+def test_save_routes_default_path(monkeypatch, complete_route_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
+    expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
+    
+    with CapturingInputOutput() as output:
+        save_routes(complete_route_data)
+    
+    assert output == expected
+
+    
+def test_save_routes_routes_not_loaded(monkeypatch, route_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
+    expected = ["Route data hasn't been loaded yet"]
+    
+    with CapturingInputOutput() as output:
+        save_routes(route_data)
+    
+    assert output == expected
+    
+    
+def test_save_routes_shapes_not_loaded(monkeypatch, trips_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
+    expected = ["Shape ID data hasn't been loaded yet"]
+    
+    with CapturingInputOutput() as output:
+        save_routes(trips_data)
+    
+    assert output == expected
+    
+# TODO How tf to test loading???
+# pickle.load() inside load_routes() fails as RouteData is not defined within this test file's namespace
+
+# def test_load_routes_valid_path(monkeypatch, route_data):
+#     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
+#     expected = ["Enter a filename: Routes and shapes Data structures successfully loaded from data/etsdata.p"]
+    
+#     with CapturingInputOutput() as output:
+#         _ = load_routes()
+        
+#     assert output == expected
