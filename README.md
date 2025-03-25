@@ -5,8 +5,8 @@
 - [X] Print shape IDs for a route
 - [X] Print coordinates for a shape ID
 - [ ] Reserved for future use
-- [ ] Save routes and shapes in a pickle
-- [ ] Load routes and shapes from a pickle
+- [X] Save routes and shapes in a pickle
+- [X] Load routes and shapes from a pickle
 - [ ] Reserved for future use
 - [X] Quit
 
