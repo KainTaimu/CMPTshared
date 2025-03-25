@@ -235,17 +235,23 @@ def test_print_shape_ids_not_loaded(monkeypatch, route_data):
 
 
 def test_print_shape_ids_found(monkeypatch, trips_data):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "117")
-    expected = [
+    monkeypatch.setattr('builtins.input', lambda prompt="": "117")
+    expected_1 = [
         "Enter route: Shape ids for route [Eaux Claires - West Clareview]",
         "\t117-34-East",
         "\t117-35-West",
     ]
-
+    expected_2 = [
+        "Enter route: Shape ids for route [Eaux Claires - West Clareview]",
+        "\t117-35-West",
+        "\t117-34-East",
+    ]
+    
     with CapturingInputOutput() as output:
         print_shape_ids(trips_data)
-
-    assert output == expected
+    
+    # print(set) is unpredictable due to nature of data structure
+    assert output == expected_1 or output == expected_2
 
 
 def test_print_shape_ids_not_found(monkeypatch, trips_data):
