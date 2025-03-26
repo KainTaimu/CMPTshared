@@ -71,7 +71,7 @@ def route_data():
 def routes_data(route_data: RouteData):
     """Return a RouteData instance with routes data loaded"""
     with Mute():
-        route_data.load_routes_data("data/routes.txt")
+        route_data.load_routes_data("tests/test_files/data/routes.txt")
     return route_data
 
 
@@ -79,7 +79,7 @@ def routes_data(route_data: RouteData):
 def shapes_data(route_data: RouteData):
     """Return a RouteData instance with shapes data loaded"""
     with Mute():
-        route_data.load_shapes_data("data/shapes.txt")
+        route_data.load_shapes_data("tests/test_files/data/shapes.txt")
     return route_data
 
 
@@ -87,15 +87,15 @@ def shapes_data(route_data: RouteData):
 def complete_route_data(route_data: RouteData):
     """Return a RouteData instance with both shape and trips data loaded"""
     with Mute():
-        route_data.load_routes_data("data/routes.txt")
-        route_data.load_shapes_data("data/shapes.txt")
+        route_data.load_routes_data("tests/test_files/data/routes.txt")
+        route_data.load_shapes_data("tests/test_files/data/shapes.txt")
         
     return route_data
 
 
 @pytest.fixture
-def no_data_path(monkeypatch):
-    """Creates a temporary directory with nothing in it to test when etsdata.p doesn't exist"""
+def empty_data_path(monkeypatch):
+    """Changes the testing working directory to a empty temporary directory"""
     path = Path(__file__).parent
     monkeypatch.chdir(path)    
     (path / "data").mkdir()
@@ -104,8 +104,8 @@ def no_data_path(monkeypatch):
 
 
 @pytest.fixture
-def data_path(monkeypatch):
-    """Changes the current directory to a directory with a valid etsdata.p file"""
+def valid_data_path(monkeypatch):
+    """Changes the testing working directory to a directory with valid data files for loading testing"""
     path = Path(__file__).parent / "test_files"
     monkeypatch.chdir(path)    
     return path
@@ -165,7 +165,7 @@ def test_invalid_options(monkeypatch, command, expected_message):
     assert output == expected_output
 
 
-def test_load_route_data_valid_path(monkeypatch, route_data):
+def test_load_route_data_valid_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/routes.txt")
     expected = ["Enter a filename: Data from data/routes.txt loaded"]
 
@@ -175,7 +175,7 @@ def test_load_route_data_valid_path(monkeypatch, route_data):
     assert output == expected
 
 
-def test_load_route_data_invalid_path(monkeypatch, route_data):
+def test_load_route_data_invalid_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_file")
     expected = ["Enter a filename: IOError: Couldn't open non_existent_file"]
     with CapturingInputOutput() as output:
@@ -184,7 +184,7 @@ def test_load_route_data_invalid_path(monkeypatch, route_data):
     assert output == expected
 
 
-def test_load_route_data_default_path(monkeypatch, route_data):
+def test_load_route_data_default_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ["Enter a filename: Data from data/routes.txt loaded"]
 
@@ -194,7 +194,7 @@ def test_load_route_data_default_path(monkeypatch, route_data):
     assert output == expected
 
 
-def test_load_shape_data_valid_path(monkeypatch, route_data):
+def test_load_shape_data_valid_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/shapes.txt")
     expected = ["Enter a filename: Data from data/shapes.txt loaded"]
 
@@ -204,7 +204,7 @@ def test_load_shape_data_valid_path(monkeypatch, route_data):
     assert output == expected
 
 
-def test_load_shape_data_invalid_path(monkeypatch, route_data):
+def test_load_shape_data_invalid_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_file")
     expected = ["Enter a filename: IOError: Couldn't open non_existent_file"]
 
@@ -214,7 +214,7 @@ def test_load_shape_data_invalid_path(monkeypatch, route_data):
     assert output == expected
 
 
-def test_load_shape_data_default_path(monkeypatch, route_data):
+def test_load_shape_data_default_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ["Enter a filename: Data from data/shapes.txt loaded"]
 
@@ -300,7 +300,7 @@ def test_print_coordinates_not_found(monkeypatch, shapes_data):
     assert output == expected
 
 
-def test_save_routes_valid_path(monkeypatch, complete_route_data, no_data_path):
+def test_save_routes_valid_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
     expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
     
@@ -310,7 +310,7 @@ def test_save_routes_valid_path(monkeypatch, complete_route_data, no_data_path):
     assert output == expected
     
 
-def test_save_routes_invalid_path(monkeypatch, complete_route_data, no_data_path):
+def test_save_routes_invalid_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_folder/etsdata.p")
     expected = ['Enter a filename: IOError: Couldn\'t save to non_existent_folder/etsdata.p']
     
@@ -320,7 +320,7 @@ def test_save_routes_invalid_path(monkeypatch, complete_route_data, no_data_path
     assert output == expected
     
 
-def test_save_routes_default_path(monkeypatch, complete_route_data, no_data_path):
+def test_save_routes_default_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
     
