@@ -56,8 +56,6 @@ class RouteData:
         Attempts to load the trips data file. Raises an IOError exception if file path is invalid.
         Defaults trip_paths to "data/trips.txt"
         """
-        if not trips_path:
-            trips_path = "data/trips.txt"
         self.__routes = self.__load_trips_data(trips_path)
         print(f"Data from {trips_path} loaded")
 
@@ -66,8 +64,6 @@ class RouteData:
         Attempts to load the shapes data file. Raises an IOError exception if file path is invalid.
         Defaults trip_paths to "data/shapes.txt"
         """
-        if not shapes_path:
-            shapes_path = "data/shapes.txt"
         self.__shape_ids = self.__load_shapes_data(shapes_path)
         print(f"Data from {shapes_path} loaded")
 
@@ -143,6 +139,8 @@ class RouteData:
                     route.set_shape_id(shape_id)
                     routes[route_id] = route
 
+        # Since routes.txt is hardcoded, the user will not know if opening 'data/routes.txt' raises an error.
+        # TODO Confirm that data/routes.txt can be hardcoded
         with open(ROUTES_PATH) as f:
             f.readline()
             for line in f:
@@ -203,11 +201,15 @@ Edmonton Transit System
     )
 
 
+# May have misnamed this function. Name suggests loading routes.txt but it actually loads the trips.txt file instead.
+# TODO Ask Dr. Mees if routes.txt should be the one path hardcoded or if trips.txt is.
 def load_route_data(data: RouteData):
     """
     Ask for a file path to the routes data file and load it
     """
     path = input("Enter a filename: ")
+    if not path:
+        path = "data/trips.txt"
     try:
         data.load_trips_data(path)
     except IOError:
@@ -216,6 +218,8 @@ def load_route_data(data: RouteData):
 
 def load_shape_data(data: RouteData):
     path = input("Enter a filename: ")
+    if not path:
+        path = "data/shapes.txt"
     try:
         data.load_shapes_data(path)
     except IOError:
@@ -261,7 +265,7 @@ def save_routes(data: RouteData):
     data_path = input("Enter a filename: ")
     if not data_path:
         data_path = "data/etsdata.p"
-
+    # TODO: Handle IO exceptions when data/ directory does not exist
     with open(data_path, "wb") as f:
         pickle.dump(data, f)
         print(f"Data structures successfully written to {data_path}")
