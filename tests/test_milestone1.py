@@ -310,6 +310,16 @@ def test_save_routes_valid_path(monkeypatch, complete_route_data, no_data_path):
     assert output == expected
     
 
+def test_save_routes_invalid_path(monkeypatch, complete_route_data, no_data_path):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_folder/etsdata.p")
+    expected = ['Enter a filename: IOError: Couldn\'t save to non_existent_folder/etsdata.p']
+    
+    with CapturingInputOutput() as output:
+        save_routes(complete_route_data)
+    
+    assert output == expected
+    
+
 def test_save_routes_default_path(monkeypatch, complete_route_data, no_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']

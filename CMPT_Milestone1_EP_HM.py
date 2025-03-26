@@ -264,11 +264,14 @@ def save_routes(data: RouteData):
     data_path = input("Enter a filename: ")
     if not data_path:
         data_path = "data/etsdata.p"
-    # TODO: Handle IO exceptions when data/ directory does not exist
-    with open(data_path, "wb") as f:
-        pickle.dump(data, f)
-        print(f"Data structures successfully written to {data_path}")
-
+        
+    try:
+        with open(data_path, "wb") as f:
+            pickle.dump(data, f)
+            print(f"Data structures successfully written to {data_path}")
+    except FileNotFoundError:
+        print(f"IOError: Couldn't save to {data_path}")
+        return None
 
 def load_routes() -> RouteData | None:
     data_path = input("Enter a filename: ")
