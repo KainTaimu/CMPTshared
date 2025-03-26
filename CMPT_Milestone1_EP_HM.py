@@ -51,14 +51,14 @@ class RouteData:
         self.__routes: dict[str, Route] = {}
         self.__shape_ids: dict[str, Shape] = {}
 
-    def load_trips_data(self, trips_path: str):
+    def load_routes_data(self, routes_path: str):
         """
-        Attempts to load the trips data file. Raises an IOError exception if file path is invalid.
-        Defaults trip_paths to "data/trips.txt"
+        Attempts to load the routes data file. Raises an IOError exception if file path is invalid.
+        Defaults routes_path to "data/routes.txt"
         """
-        self.__routes = self.__load_trips_data(trips_path)
-        print(f"Data from {trips_path} loaded")
-
+        self.__routes = self.__load_routes_data(routes_path)
+        print(f"Data from {routes_path} loaded")
+        
     def load_shapes_data(self, shapes_path: str):
         """
         Attempts to load the shapes data file. Raises an IOError exception if file path is invalid.
@@ -115,18 +115,21 @@ class RouteData:
         if self.__shape_ids:
             return True
         return False
-
-    def __load_trips_data(self, trips_path: str):
+    
+    # BUG Will not raise an exception if routes_path is set to a wrong, yet valid file, such as trips.txt
+    # This results in routes having an incorrect long name. 
+    # ie: "8 Abbottsfield" instead of "Abbottsfield - Downtown - University"
+    def __load_routes_data(self, routes_path: str):
         """
         Find and save all the route IDs from trips.txt and routes.txt.
         trips.txt contains the route IDs and its corresponding shape IDs
         routes.txt contains the route long names for each route ID
         """
-        ROUTES_PATH = "data/routes.txt"
+        TRIPS_PATH = "data/trips.txt"
         routes: dict[str, Route] = {}
 
-        # First, find the shape IDs
-        with open(trips_path) as f:
+        # Since trips.txt is hardcoded, the user will not know if opening 'data/trips.txt' raises an error.
+        with open(TRIPS_PATH) as f:
             f.readline()  # We skip the CSV header line
             for line in f:
                 spl = line.strip().split(",")
@@ -139,16 +142,14 @@ class RouteData:
                     route.set_shape_id(shape_id)
                     routes[route_id] = route
 
-        # Since routes.txt is hardcoded, the user will not know if opening 'data/routes.txt' raises an error.
-        # TODO Confirm that data/routes.txt can be hardcoded
-        with open(ROUTES_PATH) as f:
+        with open(routes_path) as f:
             f.readline()
             for line in f:
                 spl = line.strip().split(",")
                 route_id = spl[0]
-
                 # We remove the quotation marks surrounding the name
                 route_name = spl[3].replace('"', "")
+                
                 routes[route_id].set_route_name(route_name)
                 self.__route_names[route_name] = route_id
 
@@ -201,17 +202,15 @@ Edmonton Transit System
     )
 
 
-# May have misnamed this function. Name suggests loading routes.txt but it actually loads the trips.txt file instead.
-# TODO Ask Dr. Mees if routes.txt should be the one path hardcoded or if trips.txt is.
 def load_route_data(data: RouteData):
     """
     Ask for a file path to the routes data file and load it
     """
     path = input("Enter a filename: ")
     if not path:
-        path = "data/trips.txt"
+        path = "data/routes.txt"
     try:
-        data.load_trips_data(path)
+        data.load_routes_data(path)
     except IOError:
         print(f"IOError: Couldn't open {path}")
 

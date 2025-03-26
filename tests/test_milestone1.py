@@ -68,10 +68,10 @@ def route_data():
 
 
 @pytest.fixture
-def trips_data(route_data: RouteData):
-    """Return a RouteData instance with trips data loaded"""
+def routes_data(route_data: RouteData):
+    """Return a RouteData instance with routes data loaded"""
     with Mute():
-        route_data.load_trips_data("data/trips.txt")
+        route_data.load_routes_data("data/routes.txt")
     return route_data
 
 
@@ -87,7 +87,7 @@ def shapes_data(route_data: RouteData):
 def complete_route_data(route_data: RouteData):
     """Return a RouteData instance with both shape and trips data loaded"""
     with Mute():
-        route_data.load_trips_data("data/trips.txt")
+        route_data.load_routes_data("data/routes.txt")
         route_data.load_shapes_data("data/shapes.txt")
         
     return route_data
@@ -166,8 +166,8 @@ def test_invalid_options(monkeypatch, command, expected_message):
 
 
 def test_load_route_data_valid_path(monkeypatch, route_data):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "data/trips.txt")
-    expected = ["Enter a filename: Data from data/trips.txt loaded"]
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/routes.txt")
+    expected = ["Enter a filename: Data from data/routes.txt loaded"]
 
     with CapturingInputOutput() as output:
         load_route_data(route_data)
@@ -186,7 +186,7 @@ def test_load_route_data_invalid_path(monkeypatch, route_data):
 
 def test_load_route_data_default_path(monkeypatch, route_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
-    expected = ["Enter a filename: Data from data/trips.txt loaded"]
+    expected = ["Enter a filename: Data from data/routes.txt loaded"]
 
     with CapturingInputOutput() as output:
         load_route_data(route_data)
@@ -234,7 +234,7 @@ def test_print_shape_ids_not_loaded(monkeypatch, route_data):
     assert output == expected
 
 
-def test_print_shape_ids_found(monkeypatch, trips_data):
+def test_print_shape_ids_found(monkeypatch, routes_data):
     monkeypatch.setattr('builtins.input', lambda prompt="": "117")
     expected_1 = [
         "Enter route: Shape ids for route [Eaux Claires - West Clareview]",
@@ -248,18 +248,18 @@ def test_print_shape_ids_found(monkeypatch, trips_data):
     ]
     
     with CapturingInputOutput() as output:
-        print_shape_ids(trips_data)
+        print_shape_ids(routes_data)
     
     # print(set) is unpredictable due to nature of data structure
     assert output == expected_1 or output == expected_2
 
 
-def test_print_shape_ids_not_found(monkeypatch, trips_data):
+def test_print_shape_ids_not_found(monkeypatch, routes_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "100")
     expected = ["Enter route: \t** NOT FOUND **"]
 
     with CapturingInputOutput() as output:
-        print_shape_ids(trips_data)
+        print_shape_ids(routes_data)
 
     assert output == expected
 
@@ -330,12 +330,12 @@ def test_save_routes_routes_not_loaded(monkeypatch, route_data):
     assert output == expected
     
     
-def test_save_routes_shapes_not_loaded(monkeypatch, trips_data):
+def test_save_routes_shapes_not_loaded(monkeypatch, routes_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
     expected = ["Shape ID data hasn't been loaded yet"]
     
     with CapturingInputOutput() as output:
-        save_routes(trips_data)
+        save_routes(routes_data)
     
     assert output == expected
     
