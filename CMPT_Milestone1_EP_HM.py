@@ -203,7 +203,8 @@ class RouteData:
                 route_id = spl[0]
                 # We remove the quotation marks surrounding the name
                 route_name = spl[3].replace('"', "")
-
+                
+                # This can result in a KeyError exception when routes.txt has a route_id not in trips.txt
                 routes[route_id].set_route_name(route_name)
                 self.__route_names[route_name] = route_id
 
@@ -311,6 +312,7 @@ def print_shape_ids(data: RouteData) -> None:
     parameter:
         data: The RouteData object to get data from.
     return:
+        None
     """
     if not data.routes_loaded():
         print("Route data hasn't been loaded yet")
