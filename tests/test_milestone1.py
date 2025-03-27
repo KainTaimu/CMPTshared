@@ -1,3 +1,4 @@
+# type: ignore
 from io import StringIO
 from pathlib import Path
 from CMPT_Milestone1_EP_HM import *
@@ -23,6 +24,7 @@ class Mute:
         sys.stdout = self._stdout
 
 
+# https://stackoverflow.com/a/16571630
 class Capturing(list):
     """Captures all print() outputs within the context manager"""
 
@@ -43,21 +45,23 @@ class CapturingInputOutput(list):
     def __enter__(self):
         self._stdout = sys.stdout
         sys.stdout = self._stringio = StringIO()
-        self._original_input = builtins.input
+        self._original_input = (
+            builtins.input
+        )  # Save real input function before patching it
 
         def mock_input_capture(prompt=""):
-            # Write the prompt to stdout so it's captured
             if prompt:
                 print(prompt, end="")
-            # Let the test's mocked input handle the actual input
             return self._original_input()
 
+        # Patch the input function to explicitly print the prompt to stdout
         builtins.input = mock_input_capture
         return self
 
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
         sys.stdout = self._stdout
+        # Unpatch the input function
         builtins.input = self._original_input
 
 
@@ -89,7 +93,7 @@ def complete_route_data(route_data: RouteData):
     with Mute():
         route_data.load_routes_data("tests/test_files/data/routes.txt")
         route_data.load_shapes_data("tests/test_files/data/shapes.txt")
-        
+
     return route_data
 
 
@@ -97,7 +101,7 @@ def complete_route_data(route_data: RouteData):
 def empty_data_path(monkeypatch):
     """Changes the testing working directory to a empty temporary directory"""
     path = Path(__file__).parent
-    monkeypatch.chdir(path)    
+    monkeypatch.chdir(path)
     (path / "data").mkdir()
     yield path
     shutil.rmtree(path / "data")
@@ -107,7 +111,7 @@ def empty_data_path(monkeypatch):
 def valid_data_path(monkeypatch):
     """Changes the testing working directory to a directory with valid data files for loading testing"""
     path = Path(__file__).parent / "test_files"
-    monkeypatch.chdir(path)    
+    monkeypatch.chdir(path)
     return path
 
 
@@ -235,7 +239,7 @@ def test_print_shape_ids_not_loaded(monkeypatch, route_data):
 
 
 def test_print_shape_ids_found(monkeypatch, routes_data):
-    monkeypatch.setattr('builtins.input', lambda prompt="": "117")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "117")
     expected_1 = [
         "Enter route: Shape ids for route [Eaux Claires - West Clareview]",
         "\t117-34-East",
@@ -246,10 +250,10 @@ def test_print_shape_ids_found(monkeypatch, routes_data):
         "\t117-35-West",
         "\t117-34-East",
     ]
-    
+
     with CapturingInputOutput() as output:
         print_shape_ids(routes_data)
-    
+
     # print(set) is unpredictable due to nature of data structure
     assert output == expected_1 or output == expected_2
 
@@ -302,61 +306,70 @@ def test_print_coordinates_not_found(monkeypatch, shapes_data):
 
 def test_save_routes_valid_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
-    expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
-    
+    expected = [
+        "Enter a filename: Data structures successfully written to data/etsdata.p"
+    ]
+
     with CapturingInputOutput() as output:
         save_routes(complete_route_data)
-    
+
     assert output == expected
-    
+
 
 def test_save_routes_invalid_path(monkeypatch, complete_route_data, empty_data_path):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_folder/etsdata.p")
-    expected = ['Enter a filename: IOError: Couldn\'t save to non_existent_folder/etsdata.p']
-    
+    monkeypatch.setattr(
+        "builtins.input", lambda prompt="": "non_existent_folder/etsdata.p"
+    )
+    expected = [
+        "Enter a filename: IOError: Couldn't save to non_existent_folder/etsdata.p"
+    ]
+
     with CapturingInputOutput() as output:
         save_routes(complete_route_data)
-    
+
     assert output == expected
-    
+
 
 def test_save_routes_default_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
-    expected = ['Enter a filename: Data structures successfully written to data/etsdata.p']
-    
+    expected = [
+        "Enter a filename: Data structures successfully written to data/etsdata.p"
+    ]
+
     with CapturingInputOutput() as output:
         save_routes(complete_route_data)
-    
+
     assert output == expected
 
-    
+
 def test_save_routes_routes_not_loaded(monkeypatch, route_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
     expected = ["Route data hasn't been loaded yet"]
-    
+
     with CapturingInputOutput() as output:
         save_routes(route_data)
-    
+
     assert output == expected
-    
-    
+
+
 def test_save_routes_shapes_not_loaded(monkeypatch, routes_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
     expected = ["Shape ID data hasn't been loaded yet"]
-    
+
     with CapturingInputOutput() as output:
         save_routes(routes_data)
-    
+
     assert output == expected
-    
+
+
 # TODO How tf to test loading???
 # pickle.load() inside load_routes() fails as RouteData is not defined within this test file's namespace
 
 # def test_load_routes_valid_path(monkeypatch, route_data):
 #     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
 #     expected = ["Enter a filename: Routes and shapes Data structures successfully loaded from data/etsdata.p"]
-    
+
 #     with CapturingInputOutput() as output:
 #         _ = load_routes()
-        
+
 #     assert output == expected
