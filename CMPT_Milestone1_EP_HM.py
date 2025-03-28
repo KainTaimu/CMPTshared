@@ -440,7 +440,3 @@ def main() -> None:
             print("Option 9 reserved for Milestone#2")
         else:
             print("Invalid Option")
-
-
-if __name__ == "__main__":
-    main()
