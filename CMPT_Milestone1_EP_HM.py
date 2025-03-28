@@ -10,6 +10,7 @@ class Shape:
     """
     Holds the shape ID and coordinates of a Shape
     """
+
     def __init__(self, shape_id: str):
         self.shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
@@ -19,6 +20,7 @@ class Route:
     """
     Holds the route ID, full route name, and shape IDs specified in trips.txt
     """
+
     def __init__(self, route_id: str):
         self.route_id: str = route_id
         self.route_name: str
@@ -51,6 +53,7 @@ class RouteData:
     """
     Provides an interface to load and access routes and shape IDs
     """
+
     def __init__(self):
         """
         Attributes:
@@ -67,7 +70,7 @@ class RouteData:
 
     def load_routes_data(self, routes_path: str) -> None:
         """
-        purpose: 
+        purpose:
             Attempts to load the routes data file. Raises an IOError exception if routes_path is invalid.
         parameter:
             routes_path: A string pointing to a path to a routes data file.
@@ -78,7 +81,7 @@ class RouteData:
 
     def load_shapes_data(self, shapes_path: str) -> None:
         """
-        purpose: 
+        purpose:
             Attempts to load the shapes data file. Raises an IOError exception if shapes_path is invalid.
         parameter:
             shapes_path: The file path to the shapes data file.
@@ -89,7 +92,7 @@ class RouteData:
 
     def get_route_long_name(self, route_id: str) -> str | None:
         """
-        purpose: 
+        purpose:
             Gets the route long name from a route ID.
         parameter:
             route_id: The route ID string to find its associated route long name for.
@@ -100,23 +103,9 @@ class RouteData:
             return self.__routes[route_id].route_name
         return None
 
-    # UNUSED. Should remove before passing in for Milestone 1
-    def get_route_id_from_long_name(self, route_long_name: str) -> str | None:
-        """
-        purpose: 
-            Gets the route ID from a route long name.
-        parameter:
-            route_long_name: The route long name string to find its associated route ID for.
-        return:
-            Returns the route ID of a route long name. Returns None if the route_long_name does not exist.
-        """
-        if route_long_name in self.__route_names:
-            return self.__route_names[route_long_name]
-        return None
-
     def get_shape_id_from_route_id(self, route_id: str) -> set[str] | None:
         """
-        purpose: 
+        purpose:
             Gets the shape IDs associated with the route_id.
         parameter:
             route_id: The route ID to search shape IDs for.
@@ -127,9 +116,11 @@ class RouteData:
             return self.__routes[route_id].shape_ids
         return None
 
-    def get_coords_from_shape_id(self, shape_id: str) -> list[tuple[float, float]] | None:
+    def get_coords_from_shape_id(
+        self, shape_id: str
+    ) -> list[tuple[float, float]] | None:
         """
-        purpose: 
+        purpose:
             Returns the coordinates points associated with the shape ID.
         parameter:
             shape_id: The shape ID to search coordinate points for.
@@ -142,7 +133,7 @@ class RouteData:
 
     def routes_loaded(self) -> bool:
         """
-        purpose: 
+        purpose:
             Checks if the routes data file has been loaded.
         parameter:
             None
@@ -155,7 +146,7 @@ class RouteData:
 
     def shapes_loaded(self) -> bool:
         """
-        purpose: 
+        purpose:
             Checks if the shapes data file has been loaded.
         parameter:
             None
@@ -166,13 +157,13 @@ class RouteData:
             return True
         return False
 
-    # REMARK 
+    # REMARK
     # Will not raise an exception if routes_path is set to a wrong, yet valid file, such as trips.txt
     # This results in routes having an incorrect long name.
     # ie: "8 Abbottsfield" instead of "Abbottsfield - Downtown - University"
     def __load_routes_data(self, routes_path: str) -> dict[str, Route]:
         """
-        purpose: 
+        purpose:
             Parses the routes data file and saves it.
         parameter:
             routes_path: A string pointing to a path to a routes data file.
@@ -203,7 +194,7 @@ class RouteData:
                 route_id = spl[0]
                 # We remove the quotation marks surrounding the name
                 route_name = spl[3].replace('"', "")
-                
+
                 # This can result in a KeyError exception when routes.txt has a route_id not in trips.txt
                 routes[route_id].set_route_name(route_name)
                 self.__route_names[route_name] = route_id
@@ -212,7 +203,7 @@ class RouteData:
 
     def __load_shapes_data(self, shapes_path: str) -> dict[str, Shape]:
         """
-        purpose: 
+        purpose:
             Parses the shapes data file and saves the shape IDs and its coordinate points.
         parameter:
             shapes_path: The file path to the shapes data file.
@@ -237,7 +228,7 @@ class RouteData:
 
 def print_menu() -> None:
     """
-    purpose: 
+    purpose:
         Prints the menu.
     parameter:
         None
@@ -307,7 +298,7 @@ def load_shape_data(data: RouteData) -> None:
 
 def print_shape_ids(data: RouteData) -> None:
     """
-    purpose: 
+    purpose:
         Asks for a route id and prints the shape IDs associated with it.
     parameter:
         data: The RouteData object to get data from.
@@ -330,7 +321,7 @@ def print_shape_ids(data: RouteData) -> None:
 
 def print_coordinates(data: RouteData) -> None:
     """
-    purpose: 
+    purpose:
         Asks for a shape ID and prints its associated coordinate points.
     parameter:
         data: The RouteData object to get data from.
@@ -352,7 +343,7 @@ def print_coordinates(data: RouteData) -> None:
 
 def save_routes(data: RouteData) -> None:
     """
-    purpose: 
+    purpose:
         Asks the user for a file path to save the pickled RouteData object to.
     parameter:
         data: The RouteData object to save into a file.
@@ -380,7 +371,7 @@ def save_routes(data: RouteData) -> None:
 
 def load_routes() -> RouteData | None:
     """
-    purpose: 
+    purpose:
         Asks for a path to a pickled RouteData file and loads and returns it as an object.
         Returns None if reading file fails.
     parameter:
