@@ -88,11 +88,28 @@ def shapes_data(route_data: RouteData):
 
 
 @pytest.fixture
+def routes_shapes_data(route_data: RouteData):
+    """Return a RouteData instance with shapes data loaded"""
+    with Mute():
+        route_data.load_routes_data("tests/test_files/data/routes.txt")
+        route_data.load_shapes_data("tests/test_files/data/shapes.txt")
+    return route_data
+
+
+@pytest.fixture
+def disruptions_data(route_data: RouteData):
+    """Return a RouteData instance with disruptions data loaded"""
+    with Mute():
+        route_data.load_disruptions_data("tests/test_files/data/traffic_disruptions.txt")
+    return route_data
+
+@pytest.fixture
 def complete_route_data(route_data: RouteData):
     """Return a RouteData instance with both shape and trips data loaded"""
     with Mute():
         route_data.load_routes_data("tests/test_files/data/routes.txt")
         route_data.load_shapes_data("tests/test_files/data/shapes.txt")
+        route_data.load_disruptions_data("tests/test_files/data/traffic_disruptions.txt")
 
     return route_data
 
@@ -121,19 +138,30 @@ TEST_MENU_OUTPUT = [
     "---------------------------------",
     "(1) Load route data",
     "(2) Load shapes data",
-    "(3) Reserved for future use",
+    "(3) Load disruptions data",
     "",
     "(4) Print shape IDs for a route",
     "(5) Print coordinates for a shape ID",
-    "(6) Reserved for future use",
+    "(6) Find longest shape for route",
     "",
     "(7) Save routes and shapes in a pickle",
     "(8) Load routes and shapes from a pickle",
     "",
-    "(9) Reserved for future use",
+    "(9) Interactive map",
     "(0) Quit",
     "",
 ]
+
+
+def test_srt_parser(valid_data_path):
+    import csv
+    with open("data/traffic_disruptions.txt") as f:
+        f.readline()
+        srt_parsed = [SrtParser.parse_line(line) for line in f]
+    with open("data/traffic_disruptions.txt") as f:
+        f.readline()
+        csv_parsed = [row for row in csv.reader(f)]
+    assert srt_parsed == csv_parsed
 
 
 def test_print_menu():
@@ -201,6 +229,36 @@ def test_load_shape_data_default_path(monkeypatch, route_data, valid_data_path):
     assert output == expected
 
 
+def test_load_disruptions_data_valid_path(monkeypatch, route_data, valid_data_path):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/traffic_disruptions.txt")
+    expected = ["Enter a filename: Data from data/traffic_disruptions.txt loaded"]
+
+    with CapturingInputOutput() as output:
+        load_disruptions_data(route_data)
+
+    assert output == expected
+
+
+def test_load_disruptions_data_invalid_path(monkeypatch, route_data, valid_data_path):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "non_existent_file")
+    expected = ["Enter a filename: IOError: Couldn't open non_existent_file"]
+
+    with CapturingInputOutput() as output:
+        load_disruptions_data(route_data)
+
+    assert output == expected
+
+
+def test_load_disruptions_data_default_path(monkeypatch, route_data, valid_data_path):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
+    expected = ["Enter a filename: Data from data/traffic_disruptions.txt loaded"]
+
+    with CapturingInputOutput() as output:
+        load_disruptions_data(route_data)
+
+    assert output == expected
+
+
 def test_print_shape_ids_not_loaded(monkeypatch, route_data):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     expected = ["Route data hasn't been loaded yet"]
@@ -263,6 +321,8 @@ def test_print_coordinates_found(monkeypatch, shapes_data):
 
     with CapturingInputOutput() as output:
         print_coordinates(shapes_data)
+
+    LOGGER.info(output[:6])
 
     assert output[:6] == expected
 
@@ -331,6 +391,16 @@ def test_save_routes_shapes_not_loaded(monkeypatch, routes_data):
 
     with CapturingInputOutput() as output:
         save_routes(routes_data)
+
+    assert output == expected
+
+
+def test_save_routes_disruptions_not_loaded(monkeypatch, routes_shapes_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
+    expected = ["Disruption data hasn't been loaded yet"]
+
+    with CapturingInputOutput() as output:
+        save_routes(routes_shapes_data)
 
     assert output == expected
 

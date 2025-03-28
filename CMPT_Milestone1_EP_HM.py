@@ -5,7 +5,100 @@
 
 import pickle
 from datetime import date
-from graphics4 import GraphWin
+from graphics4 import GraphWin, Entry, Text, Point
+
+class SrtParser:
+    @staticmethod
+    def parse_line(string: str):
+        chars = list(string)
+        # First, replace all quoted strings with a NUL character
+        strings = SrtParser.__parse_quoted_strings(chars)
+        string, removed_strings = SrtParser.__remove_quoted_strings(string, strings)
+
+        # Now that there's no quoted strings, we can parse it normally
+        spl = string.split(",")
+        builder = []
+        i = 0
+
+        # Then, substitute the original quoted strings in again
+        for substring in spl:
+            substring = substring.strip(" \n")
+            if substring == "\0":
+                substring = removed_strings[i]
+                builder.append(substring)
+                i += 1
+                continue
+            builder.append(substring)
+
+        return builder
+
+    @staticmethod
+    def __parse_quoted_strings(chars: list[str], new: list[str] = []):
+        if len(chars) == 0:
+            return new
+        current = chars.pop()
+        if current != '"':
+            return SrtParser.__parse_quoted_strings(chars, new)
+
+        builder = ""
+        while True:
+            current = chars.pop()
+            if len(chars) == 0:
+                raise Exception("Unterminated string")
+            builder += current
+            if current == '"':
+                new.append(builder[-2::-1])
+                break
+
+        return SrtParser.__parse_quoted_strings(chars, new)
+
+    @staticmethod
+    def __remove_quoted_strings(string: str, substrings: list[str]):
+        removed_strings = []
+        new_string = string
+        for substring in substrings:
+            removed_strings.append(substring)
+            new_string = new_string.replace('"' + substring + '"', "\0") # We mark replaced strings with NUL to fill in later
+        return new_string, removed_strings[::-1]
+
+
+class DateConvert:
+    date_mapping = {
+        "Jan": 1,
+        "Feb": 2,
+        "Mar": 3,
+        "Apr": 4,
+        "May": 5,
+        "Jun": 6,
+        "Jul": 7,
+        "Aug": 8,
+        "Sep": 9,
+        "Oct": 10,
+        "Nov": 11,
+        "Dec": 12
+    }
+
+    @staticmethod
+    def strtodate(string: str):
+        string = string.replace(",", "")
+        spl = string.split()
+        month = DateConvert.date_mapping[spl[0]]
+        day = int(spl[1])
+        year = int(spl[2])
+        return date(year, month, day)
+
+
+class Coordinates:
+    def __init__(self, longitude: float, latitude: float) -> None:
+        self.longitude = longitude
+        self.latitude = latitude
+
+    @staticmethod
+    def parse(string: str):
+        stripped = string[7:-2].split()
+        longitude = float(stripped[0])
+        latitude = float(stripped[1])
+        return Coordinates(longitude, latitude)
 
 
 class Shape:
@@ -51,6 +144,12 @@ class Route:
         self.route_name = route_name
 
 
+class Disruption:
+    def __init__(self, finish_date: date, coords: Coordinates) -> None:
+        self.finish_date = finish_date
+        self.coords = coords
+
+
 class RouteData:
     """
     Provides an interface to load and access routes and shape IDs
@@ -69,6 +168,7 @@ class RouteData:
         self.__route_names: dict[str, str] = {}
         self.__routes: dict[str, Route] = {}
         self.__shape_ids: dict[str, Shape] = {}
+        self.__disruptions: set[Disruption] = set()
 
     def load_routes_data(self, routes_path: str) -> None:
         """
@@ -91,6 +191,9 @@ class RouteData:
             None
         """
         self.__shape_ids = self.__load_shapes_data(shapes_path)
+
+    def load_disruptions_data(self, disruptions_path: str) -> None:
+        self.__disruptions = self.__load_disruptions_data(disruptions_path)
 
     def get_route_long_name(self, route_id: str) -> str | None:
         """
@@ -156,6 +259,11 @@ class RouteData:
             Returns True if the shapes file has been loaded. Otherwise, returns False.
         """
         if self.__shape_ids:
+            return True
+        return False
+
+    def disruptions_loaded(self) -> bool:
+        if self.__disruptions:
             return True
         return False
 
@@ -227,6 +335,19 @@ class RouteData:
                     shapes[shape_id].coordinates.append(coord)
         return shapes
 
+    def __load_disruptions_data(self, disruptions_path: str) -> set[Disruption]:
+        disruptions: set[Disruption] = set()
+        with open(disruptions_path) as f:
+            f.readline()
+            for line in f:
+                data = SrtParser.parse_line(line)
+                finish_date = DateConvert.strtodate(data[3])
+                coords = Coordinates.parse(data[-1])
+                disruption = Disruption(finish_date, coords)
+                disruptions.add(disruption)
+
+        return disruptions
+
 
 def print_menu() -> None:
     """
@@ -243,16 +364,16 @@ Edmonton Transit System
 ---------------------------------
 (1) Load route data
 (2) Load shapes data
-(3) Reserved for future use
+(3) Load disruptions data
 
 (4) Print shape IDs for a route
 (5) Print coordinates for a shape ID
-(6) Reserved for future use
+(6) Find longest shape for route
 
 (7) Save routes and shapes in a pickle
 (8) Load routes and shapes from a pickle
 
-(9) Reserved for future use
+(9) Interactive map
 (0) Quit
 """
     )
@@ -293,6 +414,25 @@ def load_shape_data(data: RouteData) -> None:
         path = "data/shapes.txt"
     try:
         data.load_shapes_data(path)
+        print(f"Data from {path} loaded")
+    except IOError:
+        print(f"IOError: Couldn't open {path}")
+
+
+def load_disruptions_data(data: RouteData) -> None:
+    """
+    purpose:
+
+    parameter:
+
+    return:
+
+    """
+    path = input("Enter a filename: ")
+    if not path:
+        path = "data/traffic_disruptions.txt"
+    try:
+        data.load_disruptions_data(path)
         print(f"Data from {path} loaded")
     except IOError:
         print(f"IOError: Couldn't open {path}")
@@ -343,6 +483,18 @@ def print_coordinates(data: RouteData) -> None:
         print("\t" + repr(shape))
 
 
+def find_longest_shape(data: RouteData) -> None:
+    """
+    purpose:
+
+    parameter:
+
+    return:
+
+    """
+    ...
+
+
 def save_routes(data: RouteData) -> None:
     """
     purpose:
@@ -357,6 +509,9 @@ def save_routes(data: RouteData) -> None:
         return
     if not data.shapes_loaded():
         print("Shape ID data hasn't been loaded yet")
+        return
+    if not data.disruptions_loaded():
+        print("Disruption data hasn't been loaded yet")
         return
     data_path = input("Enter a filename: ")
     if not data_path:
@@ -393,6 +548,19 @@ def load_routes() -> RouteData | None:
     except FileNotFoundError:
         print(f"IOError: Couldn't open {data_path}")
         return None
+
+
+def interactive_map(data: RouteData) -> None:
+    """
+    purpose:
+
+    parameter:
+
+    return:
+
+    """
+    WIDTH, HEIGHT = 800, 920
+    ...
 
 
 def lonlat_to_xy(win: GraphWin, lon: float, lat: float):
@@ -436,13 +604,13 @@ def main() -> None:
         elif user_input == "2":
             load_shape_data(data)
         elif user_input == "3":
-            print("Option 3 reserved for Milestone#2")
+            load_disruptions_data(data)
         elif user_input == "4":
             print_shape_ids(data)
         elif user_input == "5":
             print_coordinates(data)
         elif user_input == "6":
-            print("Option 6 reserved for Milestone#2")
+            find_longest_shape(data)
         elif user_input == "7":
             save_routes(data)
         elif user_input == "8":
@@ -450,6 +618,9 @@ def main() -> None:
             if out:
                 data = out
         elif user_input == "9":
-            print("Option 9 reserved for Milestone#2")
+            interactive_map(data)
         else:
             print("Invalid Option")
+
+if __name__ == "__main__":
+    main()
