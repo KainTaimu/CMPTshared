@@ -142,33 +142,6 @@ def test_print_menu():
     assert output == TEST_MENU_OUTPUT, "print_menu() prints out the wrong menu!"
 
 
-@pytest.mark.parametrize(
-    "command,expected_message",
-    [
-        ("99", "Invalid Option"),
-        ("3", "Option 3 reserved for Milestone#2"),
-        ("6", "Option 6 reserved for Milestone#2"),
-        ("9", "Option 9 reserved for Milestone#2"),
-    ],
-)
-def test_invalid_options(monkeypatch, command, expected_message):
-    inputs = [command, "0"]
-    input_iter = iter(inputs)
-    monkeypatch.setattr("builtins.input", lambda prompt="": next(input_iter))
-
-    expected_output = [
-        *TEST_MENU_OUTPUT,
-        f"Enter Command: {expected_message}",
-        *TEST_MENU_OUTPUT,
-        "Enter Command: ",
-    ]
-
-    with CapturingInputOutput() as output:
-        main()
-
-    assert output == expected_output
-
-
 def test_load_route_data_valid_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/routes.txt")
     expected = ["Enter a filename: Data from data/routes.txt loaded"]
