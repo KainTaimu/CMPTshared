@@ -1,7 +1,7 @@
 # type: ignore
 from io import StringIO
 from pathlib import Path
-from CMPT_Milestone1_EP_HM import *
+from CMPT_Milestone2_EP_HM import *
 import builtins
 import pytest
 import sys
