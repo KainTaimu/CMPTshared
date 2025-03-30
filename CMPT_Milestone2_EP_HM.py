@@ -152,33 +152,37 @@ class Coordinates:
         self.longitude = longitude
         self.latitude = latitude
 
+    # REMARK:
+    # The shapes.txt file orders its coordinates by latitude and longitude.
+    # However, disruptions.txt orders it by longitude and latitude instead.
     def __str__(self) -> str:
         """
         purpose:
-            Returns a tuple-like representation of this Coordinate
+            Returns a tuple-like representation of this Coordinate.
         parameters:
             None
         returns:
-            A string
+            A string of form "({latitude}, {longitude})"
         """
-        return f"({self.longitude}, {self.latitude})"
+        return f"({self.latitude}, {self.longitude})"
 
     def get_coords(self) -> tuple[float, float]:
         """
         purpose:
-            Returns the longitudinal latitudinal coordinates
+            Returns the longitudinal latitudinal coordinates.
         parameters:
             None
         returns:
-            A tuple of floats representing the longitude and latitude coordinates respectively
+            A tuple of floats representing the latitude and longitude coordinates respectively
         """
-        return self.longitude, self.latitude
+        return self.latitude, self.longitude
 
     @staticmethod
     def parse(string: str) -> "Coordinates":
         """
         purpose:
-            Parses a string into a Coordinates object
+            Parses a string into a Coordinates object.
+            WARNING: "POINT (longitude latitude)" != ""POINT (latitude longitude)""
         parameters:
             string: The string of form "POINT (longitude latitude)"
         returns:
@@ -613,7 +617,7 @@ class InteractiveMap:
             # Skip if disruption date has passed
             if disruption.finish_date < today:
                 continue
-            lon, lat = disruption.coords.get_coords()
+            lat, lon = disruption.coords.get_coords()
             x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
             point = Circle(Point(x, y), 3)
             point.setFill("red")
@@ -693,7 +697,7 @@ class InteractiveMap:
         if not coords:
             return
         for coord in coords:
-            lon, lat = coord.get_coords()
+            lat, lon = coord.get_coords()
             x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
             point = Point(x, y)
             points.append(point)
