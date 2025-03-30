@@ -349,9 +349,7 @@ class RouteData:
             return self.__routes[route_id].shape_ids
         return None
 
-    def get_coords_from_shape_id(
-        self, shape_id: str
-    ) -> list[Coordinates] | None:
+    def get_coords_from_shape_id(self, shape_id: str) -> list[Coordinates] | None:
         """
         purpose:
             Returns the coordinates points associated with the shape ID.
@@ -363,7 +361,6 @@ class RouteData:
         if shape_id in self.__shape_ids:
             return self.__shape_ids[shape_id].coordinates
         return None
-
 
     def get_longest_shape_from_route_id(self, route_id: str) -> tuple[str, int] | None:
         """
@@ -388,7 +385,6 @@ class RouteData:
 
         largest = max(tracker)
         return tracker[largest], largest
-
 
     def routes_loaded(self) -> bool:
         """
@@ -731,7 +727,9 @@ def load_routes() -> RouteData | None:
 class InteractiveMap:
     @staticmethod
     def start(data: RouteData):
-        win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label = InteractiveMap.create_map_window()
+        win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label = (
+            InteractiveMap.create_map_window()
+        )
         InteractiveMap.draw_disruptions(win, data)
         running = True
         while running:
