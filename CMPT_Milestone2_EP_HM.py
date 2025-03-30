@@ -531,11 +531,12 @@ def load_shape_data(data: RouteData) -> None:
 def load_disruptions_data(data: RouteData) -> None:
     """
     purpose:
-
+        Ask for a file path to the disruptions data file and load it.
+        Defaults disruptions_path to "data/traffic_disruptions.txt"
     parameter:
-
+        data: The RouteData object to load data to.
     return:
-
+        None
     """
     path = input("Enter a filename: ")
     if not path:
@@ -595,11 +596,8 @@ def print_coordinates(data: RouteData) -> None:
 def find_longest_shape(data: RouteData) -> None:
     """
     purpose:
-
     parameter:
-
     return:
-
     """
     ...
 
@@ -662,11 +660,8 @@ def load_routes() -> RouteData | None:
 def interactive_map(data: RouteData) -> None:
     """
     purpose:
-
     parameter:
-
     return:
-
     """
     WIDTH, HEIGHT = 800, 920
     ...
