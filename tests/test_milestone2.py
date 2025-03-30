@@ -337,6 +337,54 @@ def test_print_coordinates_not_found(monkeypatch, shapes_data):
     assert output == expected
 
 
+def test_print_longest_shape_routes_not_loaded(route_data):
+    expected = ["Route data hasn't been loaded yet"]
+
+    with CapturingInputOutput() as output:
+        find_longest_shape(route_data)
+
+    assert output == expected
+
+
+def test_print_longest_shape_shapes_not_loaded(routes_data):
+    expected = ["Shape ID data hasn't been loaded yet"]
+
+    with CapturingInputOutput() as output:
+        find_longest_shape(routes_data)
+
+    assert output == expected
+
+def test_print_longest_shape_disruptions_not_loaded(routes_shapes_data):
+    expected = ["Disruptions data hasn't been loaded yet"]
+
+    with CapturingInputOutput() as output:
+        find_longest_shape(routes_shapes_data)
+
+    assert output == expected
+
+
+def test_print_longest_shape_found(monkeypatch, complete_route_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "056")
+    expected = [
+        "Enter route ID: The longest shape for 056 is 056-148-East with 1045 coordinates",
+    ]
+
+    with CapturingInputOutput() as output:
+        find_longest_shape(complete_route_data)
+
+    assert output == expected
+
+
+def test_print_longest_shape_not_found(monkeypatch, complete_route_data):
+    monkeypatch.setattr("builtins.input", lambda prompt="": "9999")
+    expected = ["Enter route ID: \t** NOT FOUND **"]
+
+    with CapturingInputOutput() as output:
+        find_longest_shape(complete_route_data)
+
+    assert output == expected
+
+
 def test_save_routes_valid_path(monkeypatch, complete_route_data, empty_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
     expected = [

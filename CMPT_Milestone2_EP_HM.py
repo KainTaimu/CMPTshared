@@ -302,7 +302,7 @@ class RouteData:
             return self.__routes[route_id].route_name
         return None
 
-    def get_shape_id_from_route_id(self, route_id: str) -> set[str] | None:
+    def get_shape_ids_from_route_id(self, route_id: str) -> set[str] | None:
         """
         purpose:
             Gets the shape IDs associated with the route_id.
@@ -329,6 +329,32 @@ class RouteData:
         if shape_id in self.__shape_ids:
             return self.__shape_ids[shape_id].coordinates
         return None
+
+
+    def get_longest_shape_from_route_id(self, route_id: str) -> tuple[str, int] | None:
+        """
+        purpose:
+            Returns the length, and shape_id associated with the route_id with the largest set of coordinates.
+        parameter:
+            route_id: The route ID to search a shape with the largest set of coordinates.
+        return:
+            Returns the shape_id string and the length of its coordinates as a tuple. Returns None if the route_id does not exist.
+        """
+        shape_ids = self.get_shape_ids_from_route_id(route_id)
+        if not shape_ids:
+            return None
+
+        tracker: dict[int, str] = {}
+        for shape_id in shape_ids:
+            # May raise KeyError if routes and disruptions are loaded, but not shapes.
+            # But we check for that in the find_longest_shape function anyways.
+            # Bad design?
+            shape = self.__shape_ids[shape_id]
+            tracker[len(shape.coordinates)] = shape_id
+
+        largest = max(tracker)
+        return tracker[largest], largest
+
 
     def routes_loaded(self) -> bool:
         """
@@ -563,7 +589,7 @@ def print_shape_ids(data: RouteData) -> None:
         return
     route_id = input("Enter route: ")
     route_name = data.get_route_long_name(route_id)
-    shape_id = data.get_shape_id_from_route_id(route_id)
+    shape_id = data.get_shape_ids_from_route_id(route_id)
     if not shape_id:
         print("\t** NOT FOUND **")
         return
@@ -597,10 +623,28 @@ def print_coordinates(data: RouteData) -> None:
 def find_longest_shape(data: RouteData) -> None:
     """
     purpose:
+        Asks for a route_id and prints out its shape_id with the largest set of coordinates.
     parameter:
+        data: The RouteData object to get data from.
     return:
+        None
     """
-    ...
+    if not data.routes_loaded():
+        print("Route data hasn't been loaded yet")
+        return
+    if not data.shapes_loaded():
+        print("Shape ID data hasn't been loaded yet")
+        return
+    if not data.disruptions_loaded():
+        print("Disruptions data hasn't been loaded yet")
+        return
+    route_id = input("Enter route ID: ")
+    out = data.get_longest_shape_from_route_id(route_id)
+    if not out:
+        print("\t** NOT FOUND **")
+        return
+    shape_id, length = out
+    print(f"The longest shape for {route_id} is {shape_id} with {length} coordinates")
 
 
 def save_routes(data: RouteData) -> None:
