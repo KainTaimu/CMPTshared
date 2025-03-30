@@ -43,9 +43,8 @@ class SrtParser:
 
         return builder
 
-    # BUG: leaks memory as new param is mutable. so it maintains state between calls
     @staticmethod
-    def __parse_quoted_strings(chars: list[str], new: list[str] = []) -> list[str]:
+    def __parse_quoted_strings(chars: list[str], new=None) -> list[str]:
         """
         purpose:
             Recursively finds all quoted substrings within a list of chars
@@ -55,10 +54,12 @@ class SrtParser:
         returns:
             A list of the quoted strings found inside chars
         """
+        if new is None:
+            new = []
         if len(chars) == 0:
             return new
         current = chars.pop()
-        # Go to next character if its not "
+        # Go to next character if it's not "
         if current != '"':
             return SrtParser.__parse_quoted_strings(chars, new)
 
@@ -194,8 +195,8 @@ class Route:
         returns:
             None
         """
+        self.route_name = None
         self.route_id: str = route_id
-        self.route_name: str
         self.shape_ids: set[str] = set()
 
     def set_shape_id(self, shape_id: str) -> None:
@@ -368,8 +369,8 @@ class RouteData:
             return True
         return False
 
-    # REMARK
-    # Will not raise an exception if routes_path is set to a wrong, yet valid file, such as trips.txt
+    # BUG:
+    # Will not raise an exception if routes_path is set to a wrong, yet valid file, such as trips.txt.
     # This results in routes having an incorrect long name.
     # ie: "8 Abbottsfield" instead of "Abbottsfield - Downtown - University"
     def __load_routes_data(self, routes_path: str) -> dict[str, Route]:
@@ -381,11 +382,11 @@ class RouteData:
         return:
             Returns a dictionary with the route id as key and a Route object as value.
         """
-        TRIPS_PATH = "data/trips.txt"
+        trips_path = "data/trips.txt"
         routes: dict[str, Route] = {}
 
         # Since trips.txt is hardcoded, the user will not know if opening 'data/trips.txt' raises an error.
-        with open(TRIPS_PATH) as f:
+        with open(trips_path) as f:
             f.readline()  # We skip the CSV header line
             for line in f:
                 spl = line.strip().split(",")
@@ -663,7 +664,7 @@ def interactive_map(data: RouteData) -> None:
     parameter:
     return:
     """
-    WIDTH, HEIGHT = 800, 920
+    width, height = 800, 920
     ...
 
 
