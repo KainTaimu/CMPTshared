@@ -423,36 +423,6 @@ def test_save_routes_default_path(monkeypatch, complete_route_data, empty_data_p
     assert output == expected
 
 
-def test_save_routes_routes_not_loaded(monkeypatch, route_data):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
-    expected = ["Route data hasn't been loaded yet"]
-
-    with CapturingInputOutput() as output:
-        save_routes(route_data)
-
-    assert output == expected
-
-
-def test_save_routes_shapes_not_loaded(monkeypatch, routes_data):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
-    expected = ["Shape ID data hasn't been loaded yet"]
-
-    with CapturingInputOutput() as output:
-        save_routes(routes_data)
-
-    assert output == expected
-
-
-def test_save_routes_disruptions_not_loaded(monkeypatch, routes_shapes_data):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "data/etsdata.p")
-    expected = ["Disruption data hasn't been loaded yet"]
-
-    with CapturingInputOutput() as output:
-        save_routes(routes_shapes_data)
-
-    assert output == expected
-
-
 # TODO How tf to test loading???
 # pickle.load() inside load_routes() fails as RouteData is not defined within this test file's namespace
 

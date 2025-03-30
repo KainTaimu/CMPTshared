@@ -656,15 +656,6 @@ def save_routes(data: RouteData) -> None:
     return:
         None
     """
-    if not data.routes_loaded():
-        print("Route data hasn't been loaded yet")
-        return
-    if not data.shapes_loaded():
-        print("Shape ID data hasn't been loaded yet")
-        return
-    if not data.disruptions_loaded():
-        print("Disruption data hasn't been loaded yet")
-        return
     data_path = input("Enter a filename: ")
     if not data_path:
         data_path = "data/etsdata.p"
