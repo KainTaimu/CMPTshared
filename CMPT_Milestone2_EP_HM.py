@@ -87,7 +87,7 @@ class SrtParser:
             string: The string to replace quoted strings in
             substrings: The list of substrings to replace
         returns:
-            The modified string
+            The modified string and the list of removed string
         """
         removed_strings: list[str] = []
         new_string = string
@@ -102,6 +102,7 @@ class SrtParser:
 class DateConvert:
     """Contains methods that converts strings into date objects"""
 
+    # Maps the month short forms to its numerical value
     date_mapping = {
         "Jan": 1,
         "Feb": 2,
@@ -152,10 +153,25 @@ class Coordinates:
         self.latitude = latitude
 
     def __str__(self) -> str:
+        """
+        purpose:
+            Returns a tuple-like representation of this Coordinate
+        parameters:
+            None
+        returns:
+            A string
+        """
         return f"({self.longitude}, {self.latitude})"
 
     def get_coords(self) -> tuple[float, float]:
-        """Returns the longitudinal latitudinal coordinates"""
+        """
+        purpose:
+            Returns the longitudinal latitudinal coordinates
+        parameters:
+            None
+        returns:
+            A tuple of floats representing the longitude and latitude coordinates respectively
+        """
         return self.longitude, self.latitude
 
     @staticmethod
@@ -203,15 +219,18 @@ class Route:
             None
         """
         self.route_name = None
-        self.locations = []
+        self.locations: list[str] = []
         self.route_id: str = route_id
         self.shape_ids: set[str] = set()
 
     def __str__(self) -> str:
         """
         purpose:
+            Returns a formatted string representation of this Route
         parameters:
+            None
         returns:
+            A string of form "Route {route_id} {locations}"
         """
         return f'Route {self.route_id} "{self.locations}"'
 
@@ -326,8 +345,11 @@ class RouteData:
     def get_disruptions(self):
         """
         purpose:
+            Gets all loaded disruptions
         parameters:
+            None
         returns:
+            Returns a set of Disruption objects. Returns None if disruptions is not loaded
         """
         if not self.disruptions_loaded():
             return None
@@ -494,8 +516,8 @@ class RouteData:
             for line in f:
                 spl = line.strip().split(",")
                 shape_id = spl[0]
-                # coord = float(spl[1]), float(spl[2])
-                coord = Coordinates(float(spl[1]), float(spl[2]))
+                # shapes.txt orders its coordinates by latitude, longitude
+                coord = Coordinates(float(spl[2]), float(spl[1]))
 
                 if shape_id in shapes:
                     shapes[shape_id].coordinates.append(coord)
@@ -527,14 +549,17 @@ class RouteData:
 
 
 class InteractiveMap:
-    """"""
+    """Contains methods for creating and manipulating an interactive map"""
 
     @staticmethod
-    def start(data: RouteData):
+    def start(data: RouteData) -> None:
         """
         purpose:
+            Starts an interactive map window
         parameters:
+            data: The RouteData object to get data from.
         returns:
+            None
         """
         win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label = (
             InteractiveMap.create_map_window()
@@ -570,31 +595,43 @@ class InteractiveMap:
                 running = False
 
     @staticmethod
-    def draw_disruptions(win: GraphWin, data: RouteData):
+    def draw_disruptions(win: GraphWin, data: RouteData) -> None:
         """
         purpose:
+            Draws all disruption points on the map
         parameters:
+            win: The GraphWin object to draw to
+            data: The RouteData object to get disruption data from
         returns:
+            None
         """
         disruptions = data.get_disruptions()
         today = date.today()
         if not disruptions:
             return None
         for disruption in disruptions:
+            # Skip if disruption date has passed
             if disruption.finish_date < today:
                 continue
             lon, lat = disruption.coords.get_coords()
             x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
-            point = Point(x, y)
+            point = Circle(Point(x, y), 3)
             point.setFill("red")
             point.draw(win)
 
     @staticmethod
-    def create_map_window():
+    def create_map_window() -> (
+        tuple[GraphWin, Entry, Entry, Rectangle, Rectangle, Text]
+    ):
         """
         purpose:
+            Creates the interactive map window
         parameter:
+            None
         return:
+            A tuple returning the following in order:
+            The main window, from_entry_box, to_entry_box,
+            search_box, clear_box, feedback_label
         """
         map_path = "edmonton.png"
         ui_width, ui_height = 800, 920
@@ -636,11 +673,16 @@ class InteractiveMap:
         return win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label
 
     @staticmethod
-    def draw_route(win: GraphWin, data: RouteData, route: Route):
+    def draw_route(win: GraphWin, data: RouteData, route: Route) -> None:
         """
         purpose:
+            Draws a path from the longest shape_id stored by route.
         parameters:
+            win: The GraphWin object where the route will be drawn
+            data: The RouteData object containing route information
+            route: The route to get its longest shape from, and draw it
         returns:
+            None
         """
         points: list[Point] = []
         out = data.get_longest_shape_from_route_id(route.route_id)
@@ -651,8 +693,8 @@ class InteractiveMap:
         if not coords:
             return
         for coord in coords:
-            lon, lat = coord.longitude, coord.latitude
-            x, y = InteractiveMap.lonlat_to_xy(win, lat, lon)
+            lon, lat = coord.get_coords()
+            x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
             point = Point(x, y)
             points.append(point)
 
@@ -668,11 +710,16 @@ class InteractiveMap:
             i -= 1
 
     @staticmethod
-    def search(data: list[Route], from_s: str, to_s: str) -> Route | None:
+    def search(routes: list[Route], from_s: str, to_s: str) -> Route | None:
         """
         purpose:
+            Searches for a route that contains the specified locations
         parameters:
+            routes: The list of routes to search in
+            from_s: The starting location to search for
+            to_s: The destination location to search for
         returns:
+            Returns the first route that contains the specified locations. Returns None if no match is found
         """
         search_conditions = set()
         if from_s != "":
@@ -680,7 +727,7 @@ class InteractiveMap:
         if to_s != "":
             search_conditions.add(to_s)
 
-        for route in data:
+        for route in routes:
             loc = set(route.locations)
 
             if from_s and to_s:
