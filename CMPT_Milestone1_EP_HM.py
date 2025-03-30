@@ -12,6 +12,14 @@ class Shape:
     """
 
     def __init__(self, shape_id: str):
+        """
+        purpose:
+            Constructs a Shape object
+        parameters:
+            shape_id: The initialized shape_id string
+        returns:
+            None
+        """
         self.shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
 
@@ -22,6 +30,14 @@ class Route:
     """
 
     def __init__(self, route_id: str):
+        """
+        purpose:
+            Constructs a Route object
+        parameters:
+            route_id: The initialized route_id string
+        returns:
+            None
+        """
         self.route_id: str = route_id
         self.route_name: str
         self.shape_ids: set[str] = set()
@@ -56,13 +72,12 @@ class RouteData:
 
     def __init__(self):
         """
-        Attributes:
-            __route_names:
-                A dictionary with a route long name as key and a Route object as a value
-            __routes:
-                A dictionary with a route ID as key and a Route object as a value
-            __shape_ids:
-                A dictionary with a shape ID as key and a Shape object as a value
+        purpose:
+            Constructs a RouteData object
+        parameters:
+            None
+        returns:
+            None
         """
         self.__route_names: dict[str, str] = {}
         self.__routes: dict[str, Route] = {}
