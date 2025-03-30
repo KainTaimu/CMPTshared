@@ -208,6 +208,11 @@ class Route:
         self.shape_ids: set[str] = set()
 
     def __str__(self) -> str:
+        """
+        purpose:
+        parameters:
+        returns:
+        """
         return f'Route {self.route_id} "{self.locations}"'
 
     def set_shape_id(self, shape_id: str) -> None:
@@ -319,6 +324,11 @@ class RouteData:
         return list(self.__routes.values())
 
     def get_disruptions(self):
+        """
+        purpose:
+        parameters:
+        returns:
+        """
         if not self.disruptions_loaded():
             return None
         return self.__disruptions
@@ -514,6 +524,227 @@ class RouteData:
                 disruptions.add(disruption)
 
         return disruptions
+
+
+class InteractiveMap:
+    """"""
+
+    @staticmethod
+    def start(data: RouteData):
+        """
+        purpose:
+        parameters:
+        returns:
+        """
+        win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label = (
+            InteractiveMap.create_map_window()
+        )
+        InteractiveMap.draw_disruptions(win, data)
+        running = True
+        while running:
+            try:
+                click_point = win.getMouse()
+                if InteractiveMap.in_rectangle(click_point, search_box):
+                    from_s = from_entry_box.text.get().strip().lower()
+                    to_s = to_entry_box.text.get().strip().lower()
+                    routes = data.get_routes()
+                    if not routes:
+                        feedback_label.setText("ROUTES NOT LOADED")
+                        continue
+                    if not data.shapes_loaded():
+                        feedback_label.setText("SHAPES NOT LOADED")
+                        continue
+                    route = InteractiveMap.search(routes, from_s, to_s)
+                    if not route:
+                        feedback_label.setText("NOT FOUND")
+                        continue
+                    InteractiveMap.draw_route(win, data, route)
+                    feedback_label.setText(f"Drawing route {route.route_id}")
+
+                elif InteractiveMap.in_rectangle(click_point, clear_box):
+                    from_entry_box.setText("")
+                    to_entry_box.setText("")
+                    feedback_label.setText("")
+
+            except GraphicsError as ex:
+                running = False
+
+    @staticmethod
+    def draw_disruptions(win: GraphWin, data: RouteData):
+        """
+        purpose:
+        parameters:
+        returns:
+        """
+        disruptions = data.get_disruptions()
+        today = date.today()
+        if not disruptions:
+            return None
+        for disruption in disruptions:
+            if disruption.finish_date < today:
+                continue
+            lon, lat = disruption.coords.get_coords()
+            x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
+            point = Point(x, y)
+            point.setFill("red")
+            point.draw(win)
+
+    @staticmethod
+    def create_map_window():
+        """
+        purpose:
+        parameter:
+        return:
+        """
+        map_path = "edmonton.png"
+        ui_width, ui_height = 800, 920
+
+        win = GraphWin("ETS Data", ui_width, ui_height)
+        win.setBackground("gray")
+
+        background = Image(Point(ui_width / 2, ui_height / 2), map_path)
+        background.draw(win)
+
+        from_entry_box = Entry(Point(120, 50), 15)
+        from_entry_box.draw(win)
+        from_entry_box_label = Text(Point(25, 50), "From:")
+        from_entry_box_label.draw(win)
+
+        to_entry_box = Entry(Point(120, 85), 15)
+        to_entry_box.draw(win)
+        to_entry_box_label = Text(Point(25, 85), "To:")
+        to_entry_box_label.draw(win)
+
+        search_box = Rectangle(Point(50, 105), Point(189, 125))
+        search_box.setFill("lightgray")
+        search_box.draw(win)
+
+        search_box_label = Text(Point(120, 118), "Search")
+        search_box_label.draw(win)
+
+        clear_box = Rectangle(Point(50, 130), Point(189, 150))
+        clear_box.setFill("lightgray")
+        clear_box.draw(win)
+
+        clear_box_label = Text(Point(120, 143), "Clear")
+        clear_box_label.draw(win)
+
+        feedback_label = Text(Point(120, 165), "")
+        feedback_label.setStyle("bold")
+        feedback_label.draw(win)
+
+        return win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label
+
+    @staticmethod
+    def draw_route(win: GraphWin, data: RouteData, route: Route):
+        """
+        purpose:
+        parameters:
+        returns:
+        """
+        points: list[Point] = []
+        out = data.get_longest_shape_from_route_id(route.route_id)
+        if not out:
+            return
+        shape_id, _ = out
+        coords = data.get_coords_from_shape_id(shape_id)
+        if not coords:
+            return
+        for coord in coords:
+            lon, lat = coord.longitude, coord.latitude
+            x, y = InteractiveMap.lonlat_to_xy(win, lat, lon)
+            point = Point(x, y)
+            points.append(point)
+
+        i = len(points) - 1
+        last = points[-1]
+        while i >= 0:
+            pt = points[i]
+            line = Line(last, pt)
+            line.setWidth(4)
+            line.setFill("red")
+            line.draw(win)
+            last = pt
+            i -= 1
+
+    @staticmethod
+    def search(data: list[Route], from_s: str, to_s: str) -> Route | None:
+        """
+        purpose:
+        parameters:
+        returns:
+        """
+        search_conditions = set()
+        if from_s != "":
+            search_conditions.add(from_s)
+        if to_s != "":
+            search_conditions.add(to_s)
+
+        for route in data:
+            loc = set(route.locations)
+
+            if from_s and to_s:
+                if search_conditions.issubset(loc):
+                    return route
+            elif from_s:
+                if loc == search_conditions:
+                    return route
+            elif to_s:
+                if loc == search_conditions:
+                    return route
+            else:
+                continue
+
+        return None
+
+    @staticmethod
+    def lonlat_to_xy(win: GraphWin, lon: float, lat: float):
+        """Written by Philip Mees for CMPT 103
+        Purpose: convert longitude/latitude locations to x/y pixel locations
+            This avoids the use of the setCoords, toWorld, and toScreen methods and graphics.py incompatibilities
+        Parameters:
+            win (GraphWin): the GraphWin object of the GUI
+            lon, lat (float): longitude and latitude to be converted
+        Returns: x, y (int): pixel location inside win"""
+
+        xlow, xhigh = -113.720049, -113.320418
+        ylow, yhigh = 53.657116, 53.393703
+
+        width, height = win.getWidth(), win.getHeight()
+
+        x = (lon - xlow) / (xhigh - xlow) * width
+        y = (lat - ylow) / (yhigh - ylow) * height
+
+        return int(x), int(y)
+
+    @staticmethod
+    def in_rectangle(click_point, rect) -> bool:
+        """
+        Purpose:
+            Determines if the mouse is clicked inside a rectangle
+        Parameters:
+            click_point - Point object at which the mouse was clicked
+            rect - Rectangle object to be checked for mouse click
+        Returns:
+            True if click-point is inside rect, False otherwise
+        """
+
+        # Return True if both the x and y components of the mouse click are inside the rectangle.
+        # Rectangle corner points can be any two opposite corner points. There is no guarantee
+        # that P1 has lower x- and y-coordinates than P2, unless you program it that way.
+        # This method works for all combinations of corner points.
+
+        x_check = (
+            rect.getP1().getX() < click_point.getX() < rect.getP2().getX()
+            or rect.getP2().getX() < click_point.getX() < rect.getP1().getX()
+        )
+
+        y_check = (
+            rect.getP1().getY() < click_point.getY() < rect.getP2().getY()
+            or rect.getP2().getY() < click_point.getY() < rect.getP1().getY()
+        )
+
+        return x_check and y_check
 
 
 def print_menu() -> None:
@@ -722,202 +953,6 @@ def load_routes() -> RouteData | None:
     except FileNotFoundError:
         print(f"IOError: Couldn't open {data_path}")
         return None
-
-
-class InteractiveMap:
-    @staticmethod
-    def start(data: RouteData):
-        win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label = (
-            InteractiveMap.create_map_window()
-        )
-        InteractiveMap.draw_disruptions(win, data)
-        running = True
-        while running:
-            try:
-                click_point = win.getMouse()
-                if InteractiveMap.in_rectangle(click_point, search_box):
-                    from_s = from_entry_box.text.get().strip().lower()
-                    to_s = to_entry_box.text.get().strip().lower()
-                    routes = data.get_routes()
-                    if not routes:
-                        feedback_label.setText("ROUTES NOT LOADED")
-                        continue
-                    route = InteractiveMap.search(routes, from_s, to_s)
-                    if not route:
-                        feedback_label.setText("NOT FOUND")
-                        continue
-                    InteractiveMap.draw_route(win, data, route)
-                    feedback_label.setText(f"Drawing route {route.route_id}")
-
-                elif InteractiveMap.in_rectangle(click_point, clear_box):
-                    from_entry_box.setText("")
-                    to_entry_box.setText("")
-                    feedback_label.setText("")
-
-            except GraphicsError as ex:
-                running = False
-
-    @staticmethod
-    def draw_disruptions(win: GraphWin, data: RouteData):
-        disruptions = data.get_disruptions()
-        today = date.today()
-        if not disruptions:
-            return None
-        for disruption in disruptions:
-            if disruption.finish_date < today:
-                continue
-            lon, lat = disruption.coords.get_coords()
-            x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
-            point = Point(x, y)
-            point.setFill("red")
-            point.draw(win)
-
-    @staticmethod
-    def create_map_window():
-        """
-        purpose:
-        parameter:
-        return:
-        """
-        map_path = "edmonton.png"
-        ui_width, ui_height = 800, 920
-
-        win = GraphWin("ETS Data", ui_width, ui_height)
-        win.setBackground("gray")
-
-        background = Image(Point(ui_width / 2, ui_height / 2), map_path)
-        background.draw(win)
-
-        from_entry_box = Entry(Point(120, 50), 15)
-        from_entry_box.draw(win)
-        from_entry_box_label = Text(Point(25, 50), "From:")
-        from_entry_box_label.draw(win)
-
-        to_entry_box = Entry(Point(120, 85), 15)
-        to_entry_box.draw(win)
-        to_entry_box_label = Text(Point(25, 85), "To:")
-        to_entry_box_label.draw(win)
-
-        search_box = Rectangle(Point(50, 105), Point(189, 125))
-        search_box.setFill("lightgray")
-        search_box.draw(win)
-
-        search_box_label = Text(Point(120, 118), "Search")
-        search_box_label.draw(win)
-
-        clear_box = Rectangle(Point(50, 130), Point(189, 150))
-        clear_box.setFill("lightgray")
-        clear_box.draw(win)
-
-        clear_box_label = Text(Point(120, 143), "Clear")
-        clear_box_label.draw(win)
-
-        feedback_label = Text(Point(120, 165), "")
-        feedback_label.setStyle("bold")
-        feedback_label.draw(win)
-
-        return win, from_entry_box, to_entry_box, search_box, clear_box, feedback_label
-
-    @staticmethod
-    def draw_route(win: GraphWin, data: RouteData, route: Route):
-        points: list[Point] = []
-        out = data.get_longest_shape_from_route_id(route.route_id)
-        if not out:
-            return
-        shape_id, _ = out
-        coords = data.get_coords_from_shape_id(shape_id)
-        if not coords:
-            return
-        for coord in coords:
-            lon, lat = coord.longitude, coord.latitude
-            x, y = InteractiveMap.lonlat_to_xy(win, lat, lon)
-            point = Point(x, y)
-            points.append(point)
-
-        i = len(points) - 1
-        last = points[-1]
-        while i >= 0:
-            pt = points[i]
-            line = Line(last, pt)
-            line.setWidth(4)
-            line.setFill("red")
-            line.draw(win)
-            last = pt
-            i -= 1
-
-    @staticmethod
-    def search(data: list[Route], from_s: str, to_s: str) -> Route | None:
-        search_conditions = set()
-        if from_s != "":
-            search_conditions.add(from_s)
-        if to_s != "":
-            search_conditions.add(to_s)
-
-        for route in data:
-            loc = set(route.locations)
-
-            if from_s and to_s:
-                if search_conditions.issubset(loc):
-                    return route
-            elif from_s:
-                if loc == search_conditions:
-                    return route
-            elif to_s:
-                if loc == search_conditions:
-                    return route
-            else:
-                continue
-
-        return None
-
-    @staticmethod
-    def lonlat_to_xy(win: GraphWin, lon: float, lat: float):
-        """Written by Philip Mees for CMPT 103
-        Purpose: convert longitude/latitude locations to x/y pixel locations
-            This avoids the use of the setCoords, toWorld, and toScreen methods and graphics.py incompatibilities
-        Parameters:
-            win (GraphWin): the GraphWin object of the GUI
-            lon, lat (float): longitude and latitude to be converted
-        Returns: x, y (int): pixel location inside win"""
-
-        xlow, xhigh = -113.720049, -113.320418
-        ylow, yhigh = 53.657116, 53.393703
-
-        width, height = win.getWidth(), win.getHeight()
-
-        x = (lon - xlow) / (xhigh - xlow) * width
-        y = (lat - ylow) / (yhigh - ylow) * height
-
-        return int(x), int(y)
-
-    @staticmethod
-    def in_rectangle(click_point, rect) -> bool:
-        """
-        Purpose:
-            Determines if the mouse is clicked inside a rectangle
-        Parameters:
-            click_point - Point object at which the mouse was clicked
-            rect - Rectangle object to be checked for mouse click
-        Returns:
-            True if click-point is inside rect, False otherwise
-        """
-
-        # Return True if both the x and y components of the mouse click are inside the rectangle.
-        # Rectangle corner points can be any two opposite corner points. There is no guarantee
-        # that P1 has lower x- and y-coordinates than P2, unless you program it that way.
-        # This method works for all combinations of corner points.
-
-        x_check = (
-            rect.getP1().getX() < click_point.getX() < rect.getP2().getX()
-            or rect.getP2().getX() < click_point.getX() < rect.getP1().getX()
-        )
-
-        y_check = (
-            rect.getP1().getY() < click_point.getY() < rect.getP2().getY()
-            or rect.getP2().getY() < click_point.getY() < rect.getP1().getY()
-        )
-
-        return x_check and y_check
 
 
 def main() -> None:
