@@ -7,17 +7,28 @@ import pickle
 from datetime import date
 from graphics4 import GraphWin, Entry, Text, Point
 
+
 class SrtParser:
+    """Contains methods for parsing of comma separated strings"""
+
     @staticmethod
-    def parse_line(string: str):
+    def parse_line(string: str) -> list[str]:
+        """
+        purpose:
+            Takes a comma separated string and returns it as a list of strings
+        parameters:
+            string: The comma separated string to parse
+        returns:
+            A list of strings representing each value in the comma separated string
+        """
         chars = list(string)
         # First, replace all quoted strings with a NUL character
         strings = SrtParser.__parse_quoted_strings(chars)
         string, removed_strings = SrtParser.__remove_quoted_strings(string, strings)
 
-        # Now that there's no quoted strings, we can parse it normally
+        # Now that there's no quoted strings, we can separate it by commas normally
         spl = string.split(",")
-        builder = []
+        builder: list[str] = []
         i = 0
 
         # Then, substitute the original quoted strings in again
@@ -32,14 +43,26 @@ class SrtParser:
 
         return builder
 
+    # BUG: leaks memory as new param is mutable. so it maintains state between calls
     @staticmethod
-    def __parse_quoted_strings(chars: list[str], new: list[str] = []):
+    def __parse_quoted_strings(chars: list[str], new: list[str] = []) -> list[str]:
+        """
+        purpose:
+            Recursively finds all quoted substrings within a list of chars
+        parameters:
+            chars: The list of chars to find quoted substrings from
+            new: An accumulator list of previously found substrings
+        returns:
+            A list of the quoted strings found inside chars
+        """
         if len(chars) == 0:
             return new
         current = chars.pop()
+        # Go to next character if its not "
         if current != '"':
             return SrtParser.__parse_quoted_strings(chars, new)
 
+        # The current character is ". Now we track all characters until we reach another "
         builder = ""
         while True:
             current = chars.pop()
@@ -53,16 +76,31 @@ class SrtParser:
         return SrtParser.__parse_quoted_strings(chars, new)
 
     @staticmethod
-    def __remove_quoted_strings(string: str, substrings: list[str]):
-        removed_strings = []
+    def __remove_quoted_strings(
+        string: str, substrings: list[str]
+    ) -> tuple[str, list[str]]:
+        """
+        purpose:
+            Replaces quoted strings with a NUL character
+        parameters:
+            string: The string to replace quoted strings in
+            substrings: The list of substrings to replace
+        returns:
+            The modified string
+        """
+        removed_strings: list[str] = []
         new_string = string
         for substring in substrings:
             removed_strings.append(substring)
-            new_string = new_string.replace('"' + substring + '"', "\0") # We mark replaced strings with NUL to fill in later
+            new_string = new_string.replace(
+                '"' + substring + '"', "\0"
+            )  # We mark replaced strings with NUL to fill in later
         return new_string, removed_strings[::-1]
 
 
 class DateConvert:
+    """Contains methods that converts strings into date objects"""
+
     date_mapping = {
         "Jan": 1,
         "Feb": 2,
@@ -75,11 +113,19 @@ class DateConvert:
         "Sep": 9,
         "Oct": 10,
         "Nov": 11,
-        "Dec": 12
+        "Dec": 12,
     }
 
     @staticmethod
-    def strtodate(string: str):
+    def strtodate(string: str) -> date:
+        """
+        purpose:
+            Constructs a date object out of a string
+        parameters:
+            string: The string of form "MM DD, YY" to convert into a date object
+        returns:
+            A date object
+        """
         string = string.replace(",", "")
         spl = string.split()
         month = DateConvert.date_mapping[spl[0]]
@@ -89,12 +135,31 @@ class DateConvert:
 
 
 class Coordinates:
-    def __init__(self, longitude: float, latitude: float) -> None:
+    """Represents a point in geographic coordinates"""
+
+    def __init__(self, longitude: float, latitude: float):
+        """
+        purpose:
+            Constructs a Coordinates object
+        parameters:
+            longitude: A float that represents the longitudinal coordinate
+            latitude: A float that represents the latitudinal coordinate
+        returns:
+            None
+        """
         self.longitude = longitude
         self.latitude = latitude
 
     @staticmethod
-    def parse(string: str):
+    def parse(string: str) -> "Coordinates":
+        """
+        purpose:
+            Parses a string into a Coordinates object
+        parameters:
+            string: The string of form "POINT (longitude latitude)"
+        returns:
+            The created Coordinates object
+        """
         stripped = string[7:-2].split()
         longitude = float(stripped[0])
         latitude = float(stripped[1])
@@ -102,21 +167,33 @@ class Coordinates:
 
 
 class Shape:
-    """
-    Holds the shape ID and coordinates of a Shape
-    """
+    """Holds the shape ID and coordinates of a Shape"""
 
     def __init__(self, shape_id: str):
+        """
+        purpose:
+            Constructs a Shape object
+        parameters:
+            shape_id: The initialized shape_id string
+        returns:
+            None
+        """
         self.shape_id = shape_id
         self.coordinates: list[tuple[float, float]] = []
 
 
 class Route:
-    """
-    Holds the route ID, full route name, and shape IDs specified in trips.txt
-    """
+    """Holds the route ID, full route name, and shape IDs specified in trips.txt"""
 
     def __init__(self, route_id: str):
+        """
+        purpose:
+            Constructs a Route object
+        parameters:
+            route_id: The initialized route_id string
+        returns:
+            None
+        """
         self.route_id: str = route_id
         self.route_name: str
         self.shape_ids: set[str] = set()
@@ -124,9 +201,9 @@ class Route:
     def set_shape_id(self, shape_id: str) -> None:
         """
         purpose:
-            Sets the shape ID attribute.
+            Sets the shape ID attribute
         parameter:
-            shape_id: The string to assign as attribute.
+            shape_id: The string to assign as attribute
         return:
             None
         """
@@ -135,9 +212,9 @@ class Route:
     def set_route_name(self, route_name: str) -> None:
         """
         purpose:
-            Sets the route long name attribute.
+            Sets the route long name attribute
         parameter:
-            route_name: The string to assign as attribute.
+            route_name: The string to assign as attribute
         return:
             None
         """
@@ -145,25 +222,33 @@ class Route:
 
 
 class Disruption:
-    def __init__(self, finish_date: date, coords: Coordinates) -> None:
+    """Holds the coordinates of a disruption point and its finish date"""
+
+    def __init__(self, finish_date: date, coords: Coordinates):
+        """
+        purpose:
+            Constructs a Disruption object
+        parameters:
+            finish_date: The initialized finish date
+            coords: The initialized Coordinate point
+        returns:
+            None
+        """
         self.finish_date = finish_date
         self.coords = coords
 
 
 class RouteData:
-    """
-    Provides an interface to load and access routes and shape IDs
-    """
+    """Provides an interface to load and access routes, shape IDs, and disruption data"""
 
     def __init__(self):
         """
-        Attributes:
-            __route_names:
-                A dictionary with a route long name as key and a Route object as a value
-            __routes:
-                A dictionary with a route ID as key and a Route object as a value
-            __shape_ids:
-                A dictionary with a shape ID as key and a Shape object as a value
+        purpose:
+            Constructs a RouteData object
+        parameters:
+            None
+        returns:
+            None
         """
         self.__route_names: dict[str, str] = {}
         self.__routes: dict[str, Route] = {}
@@ -193,6 +278,14 @@ class RouteData:
         self.__shape_ids = self.__load_shapes_data(shapes_path)
 
     def load_disruptions_data(self, disruptions_path: str) -> None:
+        """
+        purpose:
+            Attempts to load the disruptions data file. Raises an IOError exception if disruptions_path is invalid.
+        parameter:
+            disruptions_path: The file path to the disruptions data file.
+        return:
+            None
+        """
         self.__disruptions = self.__load_disruptions_data(disruptions_path)
 
     def get_route_long_name(self, route_id: str) -> str | None:
@@ -263,6 +356,14 @@ class RouteData:
         return False
 
     def disruptions_loaded(self) -> bool:
+        """
+        purpose:
+            Checks if the disruptions data file has been loaded.
+        parameter:
+            None
+        return:
+            Returns True if the disruptions file has been loaded. Otherwise, returns False.
+        """
         if self.__disruptions:
             return True
         return False
@@ -336,6 +437,14 @@ class RouteData:
         return shapes
 
     def __load_disruptions_data(self, disruptions_path: str) -> set[Disruption]:
+        """
+        purpose:
+            Parses the disruptions data file and saves the finish dates and coordinates of each disruption
+        parameters:
+            disruptions_path: The file path to the shapes data file
+        returns:
+            None
+        """
         disruptions: set[Disruption] = set()
         with open(disruptions_path) as f:
             f.readline()
@@ -564,13 +673,13 @@ def interactive_map(data: RouteData) -> None:
 
 
 def lonlat_to_xy(win: GraphWin, lon: float, lat: float):
-    '''Written by Philip Mees for CMPT 103
+    """Written by Philip Mees for CMPT 103
     Purpose: convert longitude/latitude locations to x/y pixel locations
         This avoids the use of the setCoords, toWorld, and toScreen methods and graphics.py incompatibilities
     Parameters:
         win (GraphWin): the GraphWin object of the GUI
         lon, lat (float): longitude and latitude to be converted
-    Returns: x, y (int): pixel location inside win'''
+    Returns: x, y (int): pixel location inside win"""
 
     xlow, xhigh = -113.720049, -113.320418
     ylow, yhigh = 53.657116, 53.393703
@@ -621,6 +730,7 @@ def main() -> None:
             interactive_map(data)
         else:
             print("Invalid Option")
+
 
 if __name__ == "__main__":
     main()

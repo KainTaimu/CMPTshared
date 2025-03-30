@@ -1,20 +1,20 @@
-### Milestone 1
+### Milestone 2
 - [X] Load route data
 - [X] Load shapes data
-- [ ] Reserved for future use
+- [X] Load disruptions data
 - [X] Print shape IDs for a route
 - [X] Print coordinates for a shape ID
-- [ ] Reserved for future use
+- [ ] Find longest shape for route
 - [X] Save routes and shapes in a pickle
 - [X] Load routes and shapes from a pickle
-- [ ] Reserved for future use
+- [ ] Interactive map
 - [X] Quit
 
 ## Documentation
 
 ### The shit we need to keep track of
 We need to keep 4 things:
-- route_long_name: The full route name 
+- route_long_name: The full route name
   - "Eaux Claires - West Clareview"
 - route_id: A short id for a bus route
   - "117"
@@ -26,12 +26,12 @@ We need to keep 4 things:
   - "(53.616871, -113.516426)"
   - "(53.616892, -113.516468)"
 
-**trips.txt** contains the route IDs and shape IDs  
-**routes.txt** contains the route long names  
-**shapes.txt** contains the shape_ids and its coordinates  
+**trips.txt** contains the route IDs and shape IDs
+**routes.txt** contains the route long names
+**shapes.txt** contains the shape_ids and its coordinates
 
 ### Route:
-This data structure keeps the three things we load in **trips.txt** and **routes.txt**.  
+This data structure keeps the three things we load in **trips.txt** and **routes.txt**.
 #### Layout:
 ```yaml
 {
@@ -45,7 +45,7 @@ This data structure keeps the three things we load in **trips.txt** and **routes
 ```
 
 ### Shape
-This data structure keeps the shape_id and coordinates from **shapes.txt**.  
+This data structure keeps the shape_id and coordinates from **shapes.txt**.
 #### Layout:
 ```yaml
 {
@@ -93,43 +93,43 @@ This data structure holds and connects everything and serves as an interface to 
 ```
 
 #### Attributes
-__route_names:  
-A dictionary with a route long name as key and a Route object as a value  
+__route_names:
+A dictionary with a route long name as key and a Route object as a value
 
-__routes:  
-A dictionary with a route ID as key and a Route object as a value  
+__routes:
+A dictionary with a route ID as key and a Route object as a value
 
-__shape_ids:  
-A dictionary with a shape ID as key and a Shape object as a value  
+__shape_ids:
+A dictionary with a shape ID as key and a Shape object as a value
 
 
 #### Methods
-load_trips_data(self, trips_path: str):  
+load_trips_data(self, trips_path: str):
 N/A
 
-load_shapes_data(self, shapes_path: str):  
+load_shapes_data(self, shapes_path: str):
 N/A
 
-get_route_long_name(self, route_id: str):  
+get_route_long_name(self, route_id: str):
 N/A
 
-get_route_id(self, route_long_name: str):  
+get_route_id(self, route_long_name: str):
 N/A
 
-get_shape_id_from_route_id(self, route_id: str):  
+get_shape_id_from_route_id(self, route_id: str):
 N/A
 
-get_coords_from_shape_id(self, shape_id: str):  
+get_coords_from_shape_id(self, shape_id: str):
 N/A
 
-routes_loaded(self):  
+routes_loaded(self):
 N/A
 
-shapes_loaded(self):  
+shapes_loaded(self):
 N/A
 
-__load_trips_data(self, trips_path: str):  
+__load_trips_data(self, trips_path: str):
 N/A
 
-__load_shapes_data(self, shapes_path: str):  
+__load_shapes_data(self, shapes_path: str):
 N/A
