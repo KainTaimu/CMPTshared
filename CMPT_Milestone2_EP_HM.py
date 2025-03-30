@@ -1,6 +1,6 @@
 # -------------------------------
 # Erwin Panergo, Hadi Moughnieh
-# Programming Project - Milestone#1
+# Programming Project - Milestone#2
 # -------------------------------
 
 import pickle
@@ -333,7 +333,7 @@ class RouteData:
         """
         self.__disruptions = self.__load_disruptions_data(disruptions_path)
 
-    def get_routes(self):
+    def get_routes(self) -> list[Route] | None:
         """
         purpose:
             Gets all loaded Routes
@@ -346,7 +346,7 @@ class RouteData:
             return None
         return list(self.__routes.values())
 
-    def get_disruptions(self):
+    def get_disruptions(self) -> set[Disruption] | None:
         """
         purpose:
             Gets all loaded disruptions
@@ -573,30 +573,31 @@ class InteractiveMap:
         while running:
             try:
                 click_point = win.getMouse()
-                if InteractiveMap.in_rectangle(click_point, search_box):
-                    from_s = from_entry_box.text.get().strip().lower()
-                    to_s = to_entry_box.text.get().strip().lower()
-                    routes = data.get_routes()
-                    if not routes:
-                        feedback_label.setText("ROUTES NOT LOADED")
-                        continue
-                    if not data.shapes_loaded():
-                        feedback_label.setText("SHAPES NOT LOADED")
-                        continue
-                    route = InteractiveMap.search(routes, from_s, to_s)
-                    if not route:
-                        feedback_label.setText("NOT FOUND")
-                        continue
-                    InteractiveMap.draw_route(win, data, route)
-                    feedback_label.setText(f"Drawing route {route.route_id}")
-
-                elif InteractiveMap.in_rectangle(click_point, clear_box):
-                    from_entry_box.setText("")
-                    to_entry_box.setText("")
-                    feedback_label.setText("")
-
             except GraphicsError as ex:
                 running = False
+                continue
+
+            if InteractiveMap.in_rectangle(click_point, search_box):
+                from_s = from_entry_box.text.get().strip().lower()
+                to_s = to_entry_box.text.get().strip().lower()
+                routes = data.get_routes()
+                if not routes:
+                    feedback_label.setText("ROUTES NOT LOADED")
+                    continue
+                if not data.shapes_loaded():
+                    feedback_label.setText("SHAPES NOT LOADED")
+                    continue
+                route = InteractiveMap.search(routes, from_s, to_s)
+                if not route:
+                    feedback_label.setText("NOT FOUND")
+                    continue
+                InteractiveMap.draw_route(win, data, route)
+                feedback_label.setText(f"Drawing route {route.route_id}")
+
+            elif InteractiveMap.in_rectangle(click_point, clear_box):
+                from_entry_box.setText("")
+                to_entry_box.setText("")
+                feedback_label.setText("")
 
     @staticmethod
     def draw_disruptions(win: GraphWin, data: RouteData) -> None:
@@ -1044,7 +1045,3 @@ def main() -> None:
             InteractiveMap.start(data)
         else:
             print("Invalid Option")
-
-
-if __name__ == "__main__":
-    main()
