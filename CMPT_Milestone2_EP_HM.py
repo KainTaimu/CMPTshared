@@ -93,9 +93,8 @@ class SrtParser:
         new_string = string
         for substring in substrings:
             removed_strings.append(substring)
-            new_string = new_string.replace(
-                '"' + substring + '"', "\0"
-            )  # We mark replaced strings with NUL to fill in later
+            # We mark replaced strings with NUL to fill in later
+            new_string = new_string.replace('"' + substring + '"', "\0")
         return new_string, removed_strings[::-1]
 
 
@@ -177,8 +176,11 @@ class Coordinates:
         """
         return self.latitude, self.longitude
 
+    # Factory methods need a classmethod so it returns the correct class type when
+    # it is inherited later. Otherwise, it will return a Coordinate object rather than
+    # the inherited type.
     @classmethod
-    def parse(cls, string: str) -> "Coordinates":
+    def parse(cls, string: str):
         """
         purpose:
             Parses a string into a Coordinates object.
@@ -188,6 +190,7 @@ class Coordinates:
         returns:
             The created Coordinates object
         """
+        # Skip the first 7 characters, and the trailing bracket
         stripped = string[7:-2].split()
         longitude = float(stripped[0])
         latitude = float(stripped[1])
@@ -223,6 +226,7 @@ class Route:
             None
         """
         self.route_name = None
+        # Cache the stripped and lowercased route destinations so its easier to access
         self.locations: list[str] = []
         self.route_id: str = route_id
         self.shape_ids: set[str] = set()
@@ -261,6 +265,7 @@ class Route:
         self.route_name = route_name
         spl = route_name.split(" - ")
         locations = []
+        # strip and lowercase all strings inside the spl list
         for loc in spl:
             locations.append(loc.strip().lower())
         self.locations = locations
@@ -295,8 +300,9 @@ class RouteData:
         returns:
             None
         """
-        self.__route_names: dict[str, str] = {}
+        # Maps the route ID with its corresponding Route object
         self.__routes: dict[str, Route] = {}
+        # Maps the shape ID with its corresponding Shape object
         self.__shape_ids: dict[str, Shape] = {}
         self.__disruptions: set[Disruption] = set()
 
@@ -482,6 +488,7 @@ class RouteData:
             f.readline()  # We skip the CSV header line
             for line in f:
                 spl = line.strip().split(",")
+                # Get the route_id and shape_id by index
                 route_id = spl[0]
                 shape_id = spl[6]
                 if route_id in routes:
@@ -501,7 +508,6 @@ class RouteData:
 
                 # This can result in a KeyError exception when routes.txt has a route_id not in trips.txt
                 routes[route_id].set_route_name(route_name)
-                self.__route_names[route_name] = route_id
 
         return routes
 
@@ -543,9 +549,13 @@ class RouteData:
         with open(disruptions_path) as f:
             f.readline()
             for line in f:
+                # First, parse the line into a list of strings
                 data = SrtParser.parse_line(line)
+                # Convert the finish date string to a date object
                 finish_date = DateConvert.strtodate(data[3])
+                # Convert the point string into a Coordinate object
                 coords = Coordinates.parse(data[-1])
+                # Finally, create a Disruption object with the above objects
                 disruption = Disruption(finish_date, coords)
                 disruptions.add(disruption)
 
@@ -574,10 +584,12 @@ class InteractiveMap:
             try:
                 click_point = win.getMouse()
             except GraphicsError as ex:
+                # Gracefully exit loop when clicking the close window button
                 running = False
                 continue
 
             if InteractiveMap.in_rectangle(click_point, search_box):
+                # make entries case insensitive
                 from_s = from_entry_box.text.get().strip().lower()
                 to_s = to_entry_box.text.get().strip().lower()
                 routes = data.get_routes()
@@ -587,13 +599,18 @@ class InteractiveMap:
                 if not data.shapes_loaded():
                     feedback_label.setText("SHAPES NOT LOADED")
                     continue
+
                 route = InteractiveMap.search(routes, from_s, to_s)
+                # route has not been found. do not draw route
                 if not route:
                     feedback_label.setText("NOT FOUND")
                     continue
+
+                # route has been found. draw it
                 InteractiveMap.draw_route(win, data, route)
                 feedback_label.setText(f"Drawing route {route.route_id}")
 
+            # Clear all entry boxes
             elif InteractiveMap.in_rectangle(click_point, clear_box):
                 from_entry_box.setText("")
                 to_entry_box.setText("")
@@ -615,11 +632,14 @@ class InteractiveMap:
         if not disruptions:
             return None
         for disruption in disruptions:
-            # Skip if disruption date has passed
+            # Don't draw point if disruption date has passed
             if disruption.finish_date < today:
                 continue
             lat, lon = disruption.coords.get_coords()
+            # Transform coordinates to pixel values
             x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
+
+            # Draw red circles where disruptions occur
             point = Circle(Point(x, y), 3)
             point.setFill("red")
             point.draw(win)
@@ -641,36 +661,46 @@ class InteractiveMap:
         map_path = "edmonton.png"
         ui_width, ui_height = 800, 920
 
+        # Initiate window
         win = GraphWin("ETS Data", ui_width, ui_height)
         win.setBackground("gray")
 
+        # Draw the Edmonton map
         background = Image(Point(ui_width / 2, ui_height / 2), map_path)
         background.draw(win)
 
+        # Create the from entry box
         from_entry_box = Entry(Point(120, 50), 15)
         from_entry_box.draw(win)
         from_entry_box_label = Text(Point(25, 50), "From:")
         from_entry_box_label.draw(win)
 
+        # Create the to entry box
         to_entry_box = Entry(Point(120, 85), 15)
         to_entry_box.draw(win)
         to_entry_box_label = Text(Point(25, 85), "To:")
         to_entry_box_label.draw(win)
 
+        # Create the search box
         search_box = Rectangle(Point(50, 105), Point(189, 125))
         search_box.setFill("lightgray")
         search_box.draw(win)
 
+        # Create the search box label
         search_box_label = Text(Point(120, 118), "Search")
         search_box_label.draw(win)
 
+        # Create the clear box
         clear_box = Rectangle(Point(50, 130), Point(189, 150))
         clear_box.setFill("lightgray")
         clear_box.draw(win)
 
+        # Create the from clear box label
         clear_box_label = Text(Point(120, 143), "Clear")
         clear_box_label.draw(win)
 
+        # Create the feedback label
+        # ie: "NOT FOUND" "Drawing route ..."
         feedback_label = Text(Point(120, 165), "")
         feedback_label.setStyle("bold")
         feedback_label.draw(win)
@@ -690,19 +720,29 @@ class InteractiveMap:
             None
         """
         points: list[Point] = []
+
+        # First, get the longest shape; as specified by the project specification
         out = data.get_longest_shape_from_route_id(route.route_id)
+
+        # Got None because route_id does not exist. Return early
         if not out:
             return
+
         shape_id, _ = out
         coords = data.get_coords_from_shape_id(shape_id)
         if not coords:
             return
+
+        # Create points from coordinates and save into points list
         for coord in coords:
             lat, lon = coord.get_coords()
+            # Transform from geographic coordinates to pixel values
             x, y = InteractiveMap.lonlat_to_xy(win, lon, lat)
             point = Point(x, y)
             points.append(point)
 
+        # Connect each points with lines
+        # Each new line starts from the terminating point of the previous point
         i = len(points) - 1
         last = points[-1]
         while i >= 0:
@@ -721,11 +761,12 @@ class InteractiveMap:
             Searches for a route that contains the specified locations
         parameters:
             routes: The list of routes to search in
-            from_s: The starting location to search for
-            to_s: The destination location to search for
+            from_s: The lower case starting location string to search for
+            to_s: The lower case destination location string to search for
         returns:
             Returns the first route that contains the specified locations. Returns None if no match is found
         """
+        # Use sets to determine if a route contains the following search conditions
         search_conditions = set()
         if from_s != "":
             search_conditions.add(from_s)
