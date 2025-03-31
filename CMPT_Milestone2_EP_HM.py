@@ -138,7 +138,7 @@ class DateConvert:
 class Coordinates:
     """Represents a point in geographic coordinates"""
 
-    def __init__(self, longitude: float, latitude: float):
+    def __init__(self, latitude: float, longitude: float):
         """
         purpose:
             Constructs a Coordinates object
@@ -148,8 +148,8 @@ class Coordinates:
         returns:
             None
         """
-        self.longitude = longitude
         self.latitude = latitude
+        self.longitude = longitude
 
     # REMARK:
     # The shapes.txt file orders its coordinates by latitude and longitude.
@@ -194,7 +194,7 @@ class Coordinates:
         stripped = string[7:-2].split()
         longitude = float(stripped[0])
         latitude = float(stripped[1])
-        return cls(longitude, latitude)
+        return cls(latitude, longitude)
 
 
 class Shape:
@@ -527,7 +527,7 @@ class RouteData:
                 spl = line.strip().split(",")
                 shape_id = spl[0]
                 # shapes.txt orders its coordinates by latitude, longitude
-                coord = Coordinates(float(spl[2]), float(spl[1]))
+                coord = Coordinates(float(spl[1]), float(spl[2]))
 
                 if shape_id in shapes:
                     shapes[shape_id].coordinates.append(coord)
