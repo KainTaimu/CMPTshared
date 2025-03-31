@@ -607,9 +607,9 @@ class InteractiveMap:
                     feedback_label.setText("NOT FOUND")
                     continue
 
+                feedback_label.setText(f"Drawing route {route.route_id}")
                 # route has been found. draw it
                 InteractiveMap.draw_route(win, data, route)
-                feedback_label.setText(f"Drawing route {route.route_id}")
 
             # Clear all entry boxes
             elif InteractiveMap.in_rectangle(click_point, clear_box):
@@ -688,7 +688,7 @@ class InteractiveMap:
         search_box.draw(win)
 
         # Create the search box label
-        search_box_label = Text(Point(120, 118), "Search")
+        search_box_label = Text(Point(120, 116), "Search")
         search_box_label.draw(win)
 
         # Create the clear box
@@ -697,7 +697,7 @@ class InteractiveMap:
         clear_box.draw(win)
 
         # Create the from clear box label
-        clear_box_label = Text(Point(120, 143), "Clear")
+        clear_box_label = Text(Point(120, 141), "Clear")
         clear_box_label.draw(win)
 
         # Create the feedback label
