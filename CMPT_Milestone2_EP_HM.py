@@ -67,6 +67,7 @@ class SrtParser:
         builder = ""
         while True:
             current = chars.pop()
+            # We've ran out of characters. Meaning the string is unterminated
             if len(chars) == 0:
                 raise Exception("Unterminated string")
             builder += current
