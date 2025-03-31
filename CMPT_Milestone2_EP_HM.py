@@ -1041,7 +1041,7 @@ def load_routes() -> RouteData | None:
     try:
         with open(data_path, "rb") as f:
             data = pickle.load(f)
-        print(f"Routes and shapes Data structures successfully loaded from {data_path}")
+        print(f"Data structures successfully loaded into routes, shapes and disruptions")
         return data
     except FileNotFoundError:
         print(f"IOError: Couldn't open {data_path}")
