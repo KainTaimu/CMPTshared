@@ -177,8 +177,8 @@ class Coordinates:
         """
         return self.latitude, self.longitude
 
-    @staticmethod
-    def parse(string: str) -> "Coordinates":
+    @classmethod
+    def parse(cls, string: str) -> "Coordinates":
         """
         purpose:
             Parses a string into a Coordinates object.
@@ -191,7 +191,7 @@ class Coordinates:
         stripped = string[7:-2].split()
         longitude = float(stripped[0])
         latitude = float(stripped[1])
-        return Coordinates(longitude, latitude)
+        return cls(longitude, latitude)
 
 
 class Shape:
