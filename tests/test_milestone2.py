@@ -75,7 +75,7 @@ def route_data():
 def routes_data(route_data: RouteData):
     """Return a RouteData instance with routes data loaded"""
     with Mute():
-        route_data.load_routes_data("tests/test_files/data/routes.txt")
+        route_data.load_trips_data("tests/test_files/data/trips.txt")
     return route_data
 
 
@@ -91,7 +91,7 @@ def shapes_data(route_data: RouteData):
 def routes_shapes_data(route_data: RouteData):
     """Return a RouteData instance with shapes data loaded"""
     with Mute():
-        route_data.load_routes_data("tests/test_files/data/routes.txt")
+        route_data.load_trips_data("tests/test_files/data/trips.txt")
         route_data.load_shapes_data("tests/test_files/data/shapes.txt")
     return route_data
 
@@ -107,7 +107,7 @@ def disruptions_data(route_data: RouteData):
 def complete_route_data(route_data: RouteData):
     """Return a RouteData instance with both shape and trips data loaded"""
     with Mute():
-        route_data.load_routes_data("tests/test_files/data/routes.txt")
+        route_data.load_trips_data("tests/test_files/data/trips.txt")
         route_data.load_shapes_data("tests/test_files/data/shapes.txt")
         route_data.load_disruptions_data("tests/test_files/data/traffic_disruptions.txt")
 
@@ -171,8 +171,8 @@ def test_print_menu():
 
 
 def test_load_route_data_valid_path(monkeypatch, route_data, valid_data_path):
-    monkeypatch.setattr("builtins.input", lambda prompt="": "data/routes.txt")
-    expected = ["Enter a filename: Data from data/routes.txt loaded"]
+    monkeypatch.setattr("builtins.input", lambda prompt="": "data/trips.txt")
+    expected = ["Enter a filename: Data from data/trips.txt loaded"]
 
     with CapturingInputOutput() as output:
         load_route_data(route_data)
@@ -191,7 +191,7 @@ def test_load_route_data_invalid_path(monkeypatch, route_data, valid_data_path):
 
 def test_load_route_data_default_path(monkeypatch, route_data, valid_data_path):
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
-    expected = ["Enter a filename: Data from data/routes.txt loaded"]
+    expected = ["Enter a filename: Data from data/trips.txt loaded"]
 
     with CapturingInputOutput() as output:
         load_route_data(route_data)

@@ -155,7 +155,7 @@ class Coordinates:
     # REMARK:
     # The shapes.txt file orders its coordinates by latitude and longitude.
     # However, disruptions.txt orders it by longitude and latitude instead.
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         purpose:
             Returns a tuple-like representation of this Coordinate.
@@ -185,7 +185,7 @@ class Coordinates:
         """
         purpose:
             Parses a string into a Coordinates object.
-            WARNING: "POINT (longitude latitude)" != ""POINT (latitude longitude)""
+            WARNING: The string orders its coordinates longtidude first, latitude second.
         parameters:
             string: The string of form "POINT (longitude latitude)"
         returns:
@@ -213,6 +213,9 @@ class Shape:
         self.shape_id = shape_id
         self.coordinates: list[Coordinates] = []
 
+    def __repr__(self) -> str:
+        return f'Shape "{self.shape_id}" with {len(self.coordinates)} coordinates'
+
 
 class Route:
     """Holds the route ID, full route name, and shape IDs specified in trips.txt"""
@@ -232,7 +235,7 @@ class Route:
         self.route_id: str = route_id
         self.shape_ids: set[str] = set()
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         purpose:
             Returns a formatted string representation of this Route
@@ -288,6 +291,11 @@ class Disruption:
         self.finish_date = finish_date
         self.coords = coords
 
+    def __repr__(self) -> str:
+        return (
+            f"Disruption: Finish date: {self.finish_date}, Coordinates: {self.coords}"
+        )
+
 
 class RouteData:
     """Provides an interface to load and access routes, shape IDs, and disruption data"""
@@ -307,16 +315,19 @@ class RouteData:
         self.__shape_ids: dict[str, Shape] = {}
         self.__disruptions: set[Disruption] = set()
 
-    def load_routes_data(self, routes_path: str) -> None:
+    def __repr__(self) -> str:
+        return f"RouteData: Routes: {self.routes_loaded()}, Shape IDs: {self.shapes_loaded()}, Disruptions: {self.disruptions_loaded()}"
+
+    def load_trips_data(self, trips_path: str) -> None:
         """
         purpose:
-            Attempts to load the routes data file. Raises an IOError exception if routes_path is invalid.
+            Attempts to load the trips data file. Raises an IOError exception if trips_path is invalid.
         parameter:
-            routes_path: A string pointing to a path to a routes data file.
+            trips_path: A string pointing to a path to a trips data file.
         return:
             None
         """
-        self.__routes = self.__load_routes_data(routes_path)
+        self.__routes = self.__load_trips_data(trips_path)
 
     def load_shapes_data(self, shapes_path: str) -> None:
         """
@@ -432,11 +443,11 @@ class RouteData:
     def routes_loaded(self) -> bool:
         """
         purpose:
-            Checks if the routes data file has been loaded.
+            Checks if the trips data file has been loaded.
         parameter:
             None
         return:
-            Returns True if the routes file has been loaded. Otherwise, returns False.
+            Returns True if the trips file has been loaded. Otherwise, returns False.
         """
         if self.__routes:
             return True
@@ -469,19 +480,18 @@ class RouteData:
         return False
 
     # BUG:
-    # Will not raise an exception if routes_path is set to a wrong, yet valid file, such as trips.txt.
-    # This results in routes having an incorrect long name.
-    # ie: "8 Abbottsfield" instead of "Abbottsfield - Downtown - University"
-    def __load_routes_data(self, routes_path: str) -> dict[str, Route]:
+    # Will not raise an exception if trips_path is set to a wrong, yet valid file, such as routes.txt.
+    # This results in routes not having shape IDs.
+    def __load_trips_data(self, trips_path: str) -> dict[str, Route]:
         """
         purpose:
-            Parses the routes data file and saves it.
+            Parses the trips data file and saves it.
         parameter:
-            routes_path: A string pointing to a path to a routes data file.
+            trips_path: A string pointing to a path to a trips data file.
         return:
             Returns a dictionary with the route id as key and a Route object as value.
         """
-        trips_path = "data/trips.txt"
+        routes_path = "data/routes.txt"
         routes: dict[str, Route] = {}
 
         # Since trips.txt is hardcoded, the user will not know if opening 'data/trips.txt' raises an error.
@@ -725,11 +735,13 @@ class InteractiveMap:
         # First, get the longest shape; as specified by the project specification
         out = data.get_longest_shape_from_route_id(route.route_id)
 
-        # Got None because route_id does not exist. Return early
+        # We then check if out is a valid tuple.
         if not out:
             return
 
-        shape_id, _ = out
+        # Now that we know for certain that out is a valid tuple, get the shape_id string.
+        # We don't need the length of the coordinate list, so discard.
+        shape_id = out[0]
         coords = data.get_coords_from_shape_id(shape_id)
         if not coords:
             return
@@ -743,7 +755,7 @@ class InteractiveMap:
             points.append(point)
 
         # Connect each points with lines
-        # Each new line starts from the terminating point of the previous point
+        # Each new line starts from the terminating point of the previous line
         i = len(points) - 1
         last = points[-1]
         while i >= 0:
@@ -871,11 +883,13 @@ Edmonton Transit System
     )
 
 
+# Remark
+# Even though this is called load_route_data, this actually asks for trips.txt, not routes.txt.
 def load_route_data(data: RouteData) -> None:
     """
     purpose:
-        Ask for a file path to the routes data file and load it.
-        Defaults routes_path to "data/routes.txt"
+        Ask for a file path to the trips data file and load it.
+        Defaults trips_path to "data/trips.txt"
     parameter:
         data: The RouteData object to load data to.
     return:
@@ -883,9 +897,9 @@ def load_route_data(data: RouteData) -> None:
     """
     path = input("Enter a filename: ")
     if not path:
-        path = "data/routes.txt"
+        path = "data/trips.txt"
     try:
-        data.load_routes_data(path)
+        data.load_trips_data(path)
         print(f"Data from {path} loaded")
     except IOError:
         print(f"IOError: Couldn't open {path}")
@@ -1042,7 +1056,9 @@ def load_routes() -> RouteData | None:
     try:
         with open(data_path, "rb") as f:
             data = pickle.load(f)
-        print(f"Data structures successfully loaded into routes, shapes and disruptions")
+        print(
+            f"Data structures successfully loaded into routes, shapes and disruptions"
+        )
         return data
     except FileNotFoundError:
         print(f"IOError: Couldn't open {data_path}")
