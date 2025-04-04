@@ -431,6 +431,7 @@ class RouteData:
 
         tracker: dict[int, str] = {}
         for shape_id in shape_ids:
+            # REMARK:
             # May raise KeyError if routes and disruptions are loaded, but not shapes.
             # But we check for that in the find_longest_shape function anyways.
             # Bad design?
@@ -479,9 +480,9 @@ class RouteData:
             return True
         return False
 
-    # BUG:
-    # Will not raise an exception if trips_path is set to a wrong, yet valid file, such as routes.txt.
-    # This results in routes not having shape IDs.
+    # REMARK:
+    # Does not check if trips_path points to a proper trips.txt.
+    # May result in incorrect data being saved rather than raising an exception.
     def __load_trips_data(self, trips_path: str) -> dict[str, Route]:
         """
         purpose:
@@ -494,7 +495,6 @@ class RouteData:
         routes_path = "data/routes.txt"
         routes: dict[str, Route] = {}
 
-        # Since trips.txt is hardcoded, the user will not know if opening 'data/trips.txt' raises an error.
         with open(trips_path) as f:
             f.readline()  # We skip the CSV header line
             for line in f:
@@ -762,7 +762,7 @@ class InteractiveMap:
             pt = points[i]
             line = Line(last, pt)
             line.setWidth(4)
-            line.setFill("red")
+            line.setFill("blue")
             line.draw(win)
             last = pt
             i -= 1
@@ -789,9 +789,13 @@ class InteractiveMap:
         for route in routes:
             loc = set(route.locations)
 
+            # We have a starting location and a destination
+            # Check if both conditions are present
             if from_s and to_s:
                 if search_conditions.issubset(loc):
                     return route
+            # Only have a starting or destination.
+            # Specs state that single inputs should only search for routes with ONE location
             elif from_s:
                 if loc == search_conditions:
                     return route
